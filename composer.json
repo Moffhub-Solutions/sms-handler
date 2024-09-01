@@ -1,0 +1,61 @@
+{
+    "name": "moffhub/sms-handler",
+    "description": "A simple sms integration helper",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Moffhub\\SmsHandler\\": "src/"
+        },
+        "aliases": {
+            "Sms": "Moffhub\\SmsHandler\\SmsHandler"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Moffhub\\SmsHandler\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Moffat Munene",
+            "email": "moffmu@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Moffhub\\SmsHandler\\SmsHandlerServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^11.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "laravel/pint": "^1.17",
+        "orchestra/testbench": "v9.4.0"
+    },
+    "scripts": {
+        "check-code": [
+            "@lint",
+            "@phpstan",
+            "@test"
+        ],
+        "lint": [
+            "vendor/bin/pint --test"
+        ],
+        "lint:fix": [
+            "vendor/bin/pint"
+        ],
+        "phpstan": [
+            "vendor/bin/phpstan"
+        ],
+        "test": [
+            "vendor/bin/phpunit"
+        ]
+    }
+}
