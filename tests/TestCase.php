@@ -1,7 +1,10 @@
 <?php
+
 namespace Moffhub\SmsHandler\Tests;
+
 use Moffhub\SmsHandler\SmsHandlerServiceProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+
 abstract class TestCase extends BaseTestCase
 {
     protected function getPackageProviders($app): array

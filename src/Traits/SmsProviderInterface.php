@@ -1,4 +1,5 @@
 <?php
+
 namespace Moffhub\SmsHandler\Traits;
 
 interface SmsProviderInterface

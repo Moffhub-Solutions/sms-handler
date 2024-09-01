@@ -2,7 +2,6 @@
 
 namespace Moffhub\SmsHandler\Providers;
 
-
 use Moffhub\SmsHandler\Traits\SmsProviderInterface;
 
 class Advanta implements SmsProviderInterface
