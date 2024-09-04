@@ -6,9 +6,6 @@
     "autoload": {
         "psr-4": {
             "Moffhub\\SmsHandler\\": "src/"
-        },
-        "aliases": {
-            "Sms": "Moffhub\\SmsHandler\\SmsHandler"
         }
     },
     "autoload-dev": {
