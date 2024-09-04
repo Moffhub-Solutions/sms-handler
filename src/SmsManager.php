@@ -2,14 +2,10 @@
 
 namespace Moffhub\SmsHandler;
 
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Manager;
 use Moffhub\SmsHandler\Providers\Advanta;
 use Moffhub\SmsHandler\Providers\AfricasTalking;
 
-/**
- * @property Application $app
- */
 class SmsManager extends Manager
 {
     public function createAdvantaDriver(): Advanta
