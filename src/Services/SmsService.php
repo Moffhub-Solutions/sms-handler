@@ -7,28 +7,25 @@ use Moffhub\SmsHandler\SmsManager;
 
 class SmsService
 {
-    protected SmsManager $smsManager;
-
     protected string $logChannel;
 
-    public function __construct(SmsManager $smsManager)
+    public function __construct(protected SmsManager $smsManager)
     {
-        $this->smsManager = $smsManager;
         $this->logChannel = config('sms.log_channel', 'log');
     }
 
-    public function sendSms($to, $message): void
+    public function sendSms(string $to, string $message): void
     {
         $provider = $this->smsManager->driver();
-
-        if ($provider->sendSms($to, $message)) {
-            $this->logSms(get_class($provider), $to, $message, true);
+        $logs = $provider->sendSms($to, $message);
+        if ($logs) {
+            $this->logSms(get_class($provider), $to, $message, true, $logs);
         } else {
             $this->logSms(get_class($provider), $to, $message, false);
         }
     }
 
-    protected function logSms($provider, $to, $message, $success): void
+    protected function logSms($provider, $to, $message, $success, $response = []): void
     {
         if ($this->logChannel === 'model') {
             SmsLog::query()->firstOrCreate([
@@ -36,6 +33,7 @@ class SmsService
                 'to' => $to,
                 'message' => $message,
                 'success' => $success,
+                'response' => $response,
             ]);
         } else {
             logger()->info('SMS sent', [

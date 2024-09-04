@@ -6,6 +6,9 @@ return [
         'advanta' => [
             'api_key' => env('ADVANTA_API_KEY'),
             'api_url' => env('ADVANTA_API_URL'),
+            'bulk_api_url' => env('ADVANTA_BULK_API_URL'),
+            'partner_id' => env('ADVANTA_PARTNER_ID'),
+            'short_code' => env('ADVANTA_SHORT_CODE'),
         ],
         'at' => [
             'api_key' => env('AT_API_KEY'),

@@ -2,9 +2,7 @@
 
 namespace Moffhub\SmsHandler\Providers;
 
-use Moffhub\SmsHandler\Traits\SmsProviderInterface;
-
-class AfricasTalking implements SmsProviderInterface
+class AfricasTalking extends BaseProvider
 {
     public function __construct(
         protected string $apiKey,
@@ -13,14 +11,14 @@ class AfricasTalking implements SmsProviderInterface
         //
     }
 
-    public function sendSms(string $to, string $message): bool
+    public function sendSms(string $to, string $message): ?object
     {
-        return false;
+        return null;
     }
 
-    public function sendBulkSms(array $recipients, string $message): bool
+    public function sendBulkSms(array $recipients, string $message): ?object
     {
-        return false;
+        return null;
     }
 
     public function getSmsDeliveryStatus(string $messageId): string

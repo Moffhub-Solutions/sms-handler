@@ -8,11 +8,9 @@ use Moffhub\SmsHandler\Services\SmsService;
 
 class SmsChannel
 {
-    protected SmsService $smsService;
-
-    public function __construct(SmsService $smsService)
+    public function __construct(protected SmsService $smsService)
     {
-        $this->smsService = $smsService;
+        //
     }
 
     /**
