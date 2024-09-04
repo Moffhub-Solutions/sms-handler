@@ -2,12 +2,21 @@
 
 namespace Moffhub\SmsHandler;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Manager;
 use Moffhub\SmsHandler\Providers\Advanta;
 use Moffhub\SmsHandler\Providers\AfricasTalking;
 
 class SmsManager extends Manager
 {
+    protected Application $app;
+
+    public function __construct(Application $app)
+    {
+        parent::__construct($app);
+        $this->app = $app;
+    }
+
     public function createAdvantaDriver(): Advanta
     {
         return new Advanta(
@@ -27,7 +36,7 @@ class SmsManager extends Manager
         );
     }
 
-    public function getDefaultDriver()
+    public function getDefaultDriver(): string
     {
         return $this->app['config']['sms.default'];
     }
