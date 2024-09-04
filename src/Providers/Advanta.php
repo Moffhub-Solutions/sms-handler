@@ -64,13 +64,14 @@ class Advanta extends BaseProvider
         })->chunk(20)->each(function ($chunk) {
             $response = Http::post($this->bulkApiUrl, $chunk);
             $responses = $response->json('responses');
+
             return collect($responses)->map(function ($response) {
                 return [
                     'responseCode' => $response['response-code'],
                     'responseDescription' => $response['response-description'],
                     'mobile' => $response['mobile'],
                     'messageId' => $response['messageid'],
-//                    'clientSmsId' => $response['clientsmsid'],
+                    //                    'clientSmsId' => $response['clientsmsid'],
                     'networkId' => $response['networkid'],
                 ];
             });
