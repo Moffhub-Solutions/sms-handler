@@ -35,7 +35,6 @@ class Advanta extends BaseProvider
                     'responseDescription' => $response['response-description'],
                     'mobile' => $response['mobile'],
                     'messageId' => $response['messageid'],
-                    'clientSmsId' => $response['clientsmsid'],
                     'networkId' => $response['networkid'],
                 ];
             });
@@ -64,16 +63,17 @@ class Advanta extends BaseProvider
             ];
         })->chunk(20)->each(function ($chunk) {
             $response = Http::post($this->bulkApiUrl, $chunk);
-            $response = $response->json('responses');
-            foreach ($response as $key => $value) {
-                if ($key === 'status') {
-                    if ($value === 'success') {
-                        return $response;
-                    }
-                }
-            }
-
-            return $response;
+            $responses = $response->json('responses');
+            return collect($responses)->map(function ($response) {
+                return [
+                    'responseCode' => $response['response-code'],
+                    'responseDescription' => $response['response-description'],
+                    'mobile' => $response['mobile'],
+                    'messageId' => $response['messageid'],
+//                    'clientSmsId' => $response['clientsmsid'],
+                    'networkId' => $response['networkid'],
+                ];
+            });
         });
 
         return null;
