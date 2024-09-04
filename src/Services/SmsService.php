@@ -35,7 +35,7 @@ class SmsService
     protected function logSms($provider, $to, $message, $success, $response = []): void
     {
         if ($this->logChannel === 'model') {
-            $smsLog = new SmsLog();
+            $smsLog = new SmsLog;
             $smsLog->provider = $provider;
             $smsLog->to = $to;
             $smsLog->message = $message;
