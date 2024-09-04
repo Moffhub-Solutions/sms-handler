@@ -3,13 +3,9 @@
 This library is used to send interface with the SMS API. It is used to send SMS messages to users.
 
 - [ ] Add Advanta sms provider
-
 - [ ] Add Africas Talking sms provider
-
 - [ ] Add Twilio sms provider
-
 - [ ] Add Nexmo sms provider
-
 - [ ] Add Custom sms provider
 
 
