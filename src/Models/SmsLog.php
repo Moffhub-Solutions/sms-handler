@@ -16,5 +16,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class SmsLog extends Model
 {
-    protected $fillable = ['provider', 'to', 'message', 'success', 'response'];
+
+    protected $casts = [
+        'response' => 'array',
+        'success' => 'boolean',
+    ];
 }

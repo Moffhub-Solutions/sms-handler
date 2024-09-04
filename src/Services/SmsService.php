@@ -4,6 +4,7 @@ namespace Moffhub\SmsHandler\Services;
 
 use Moffhub\SmsHandler\Models\SmsLog;
 use Moffhub\SmsHandler\SmsManager;
+use Throwable;
 
 class SmsService
 {
@@ -14,6 +15,9 @@ class SmsService
         $this->logChannel = config('sms.log_channel', 'log');
     }
 
+    /**
+     * @throws Throwable
+     */
     public function sendSms(string $to, string $message): void
     {
         $provider = $this->smsManager->driver();
@@ -25,16 +29,19 @@ class SmsService
         }
     }
 
+    /**
+     * @throws Throwable
+     */
     protected function logSms($provider, $to, $message, $success, $response = []): void
     {
         if ($this->logChannel === 'model') {
-            SmsLog::query()->firstOrCreate([
-                'provider' => $provider,
-                'to' => $to,
-                'message' => $message,
-                'success' => $success,
-                'response' => $response,
-            ]);
+            $smsLog = new SmsLog();
+            $smsLog->provider = $provider;
+            $smsLog->to = $to;
+            $smsLog->message = $message;
+            $smsLog->success = $success;
+            $smsLog->response = $response;
+            $smsLog->saveOrFail();
         } else {
             logger()->info('SMS sent', [
                 'provider' => $provider,
@@ -45,6 +52,9 @@ class SmsService
         }
     }
 
+    /**
+     * @throws Throwable
+     */
     public function sendBulkSms(array $recipients, $message): void
     {
         $provider = $this->smsManager->driver();
@@ -60,6 +70,9 @@ class SmsService
         }
     }
 
+    /**
+     * @throws Throwable
+     */
     public function getSmsDeliveryStatus($messageId)
     {
         if ($this->smsManager->driver()->getSmsDeliveryStatus($messageId)) {
