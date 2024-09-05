@@ -1,17 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Tests\Unit;
 
 use Illuminate\Foundation\Application;
-use Moffhub\SmsHandler\SmsManager;
 use Moffhub\SmsHandler\Providers\Advanta;
 use Moffhub\SmsHandler\Providers\AfricasTalking;
+use Moffhub\SmsHandler\SmsManager;
 use Moffhub\SmsHandler\Tests\TestCase;
 
 class SmsManagerTest extends TestCase
 {
     protected $app;
+
     protected SmsManager $smsManager;
 
     protected function setUp(): void
@@ -27,7 +29,7 @@ class SmsManagerTest extends TestCase
                 'sms.providers.provider2.api_key' => 'africas_talking_api_key',
                 'sms.providers.provider2.api_url' => 'africas_talking_api_url',
                 'sms.default' => 'advanta',
-            ]]
+            ]],
         ]);
 
         $this->smsManager = new SmsManager($this->app);
