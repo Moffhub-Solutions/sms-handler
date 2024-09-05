@@ -21,8 +21,8 @@ class SendSmsAction
         return collect($responses)->map(function ($response) use ($message) {
             return new SmsResponseData(
                 messageId: $response['messageid'] ?? '',
-                status: $response['response-code'] ?? '',
-                to: $response['mobile'] ?? '',
+                status: (string) $response['response-code'] ?? '',
+                to: (string) $response['mobile'] ?? '',
                 message: $message,
                 provider: 'advanta',
                 response: [
