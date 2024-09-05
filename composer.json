@@ -3,9 +3,15 @@
     "description": "A simple sms integration helper",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "moffhub",
+        "sms",
+        "laravel",
+        "helper"
+    ],
     "autoload": {
         "files": [
-            "src/helpers.php"
+            "src/Helpers/helpers.php"
         ],
         "psr-4": {
             "Moffhub\\SmsHandler\\": "src/"
@@ -30,6 +36,7 @@
         }
     },
     "minimum-stability": "stable",
+    "prefer-stable": true,
     "require": {
         "php": "^8.3",
         "laravel/framework": "^11.0"
