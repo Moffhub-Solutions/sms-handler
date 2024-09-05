@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Moffhub\SmsHandler\Data;
+
 class SmsResponseData
 {
     public function __construct(

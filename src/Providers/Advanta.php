@@ -10,7 +10,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
-use SmsResponseData;
+use Moffhub\SmsHandler\Data\SmsResponseData;
 use Throwable;
 
 class Advanta extends BaseProvider
