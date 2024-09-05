@@ -9,8 +9,8 @@ use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use SendSmsAction;
-use SmsResponseData;
+use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
+use Moffhub\SmsHandler\Data\SmsResponseData;
 use Throwable;
 
 use function Moffhub\SmsHandler\formatPhoneNumber;

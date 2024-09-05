@@ -7,6 +7,7 @@ namespace Moffhub\SmsHandler\Notifications;
 use Exception;
 use Illuminate\Support\Facades\Notification;
 use Moffhub\SmsHandler\Services\SmsService;
+use Throwable;
 
 class SmsChannel
 {
@@ -16,7 +17,7 @@ class SmsChannel
     }
 
     /**
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function send($notifiable, Notification $notification): void
     {

@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+namespace Moffhub\SmsHandler\Actions\Advanta;
+
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Moffhub\SmsHandler\Data\SmsResponseData;
 
 class SendSmsAction
 {
