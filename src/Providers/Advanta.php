@@ -28,12 +28,37 @@ class Advanta extends BaseProvider
         ///
     }
 
+    public function getApiKey(): string
+    {
+        return $this->apiKey;
+    }
+
+    public function getApiUrl(): string
+    {
+        return $this->apiUrl;
+    }
+
+    public function getPartnerId(): string
+    {
+        return $this->partnerId;
+    }
+
+    public function getShortCode(): string
+    {
+        return $this->shortCode;
+    }
+
+    public function getBulkApiUrl(): ?string
+    {
+        return $this->bulkApiUrl;
+    }
+
     public function getSmsDeliveryStatus(string $messageId): string
     {
         return 'delivered';
     }
 
-    public function sendBulkSms(array $recipients, string $message): ?object
+    public function sendBulkSms(array $recipients, string $message): ?Collection
     {
         collect($recipients)->map(function ($recipient, $message) {
             return [
@@ -67,7 +92,7 @@ class Advanta extends BaseProvider
     /**
      * @return Collection<int, SmsResponseData>|null
      */
-    public function sendScheduledSms(string $to, string $message, CarbonImmutable|string $date): ?object
+    public function sendScheduledSms(string $to, string $message, CarbonImmutable|string $date): ?Collection
     {
         try {
             return $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [
@@ -94,7 +119,7 @@ class Advanta extends BaseProvider
      *
      * @return Collection<int, SmsResponseData>|null
      */
-    public function sendSms(string $to, string $message): ?object
+    public function sendSms(string $to, string $message): ?Collection
     {
         $phoneNumber = formatPhoneNumber($to);
 

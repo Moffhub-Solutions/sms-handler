@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Illuminate\Support\Collection;
+
 class AfricasTalking extends BaseProvider
 {
     public function __construct(
@@ -13,12 +15,22 @@ class AfricasTalking extends BaseProvider
         //
     }
 
-    public function sendSms(string $to, string $message): ?object
+    public function getApiKey(): string
+    {
+        return $this->apiKey;
+    }
+
+    public function getApiUrl(): string
+    {
+        return $this->apiUrl;
+    }
+
+    public function sendSms(string $to, string $message): ?Collection
     {
         return null;
     }
 
-    public function sendBulkSms(array $recipients, string $message): ?object
+    public function sendBulkSms(array $recipients, string $message): ?Collection
     {
         return null;
     }
