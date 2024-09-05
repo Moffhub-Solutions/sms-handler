@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
@@ -11,18 +12,11 @@ use Illuminate\Support\Facades\Http;
 use SendSmsAction;
 use SmsResponseData;
 use Throwable;
+
 use function Moffhub\SmsHandler\formatPhoneNumber;
 
 class Advanta extends BaseProvider
 {
-    /**
-     * @param  Application  $app
-     * @param  string  $apiKey
-     * @param  string  $apiUrl
-     * @param  string  $partnerId
-     * @param  string  $shortCode
-     * @param  string|null  $bulkApiUrl
-     */
     public function __construct(
         protected Application $app,
         protected string $apiKey,
@@ -71,9 +65,6 @@ class Advanta extends BaseProvider
     }
 
     /**
-     * @param  string  $to
-     * @param  string  $message
-     * @param  CarbonImmutable|string  $date
      * @return Collection<int, SmsResponseData>|null
      */
     public function sendScheduledSms(string $to, string $message, CarbonImmutable|string $date): ?object
@@ -101,8 +92,6 @@ class Advanta extends BaseProvider
     /**
      * Send SMS
      *
-     * @param  string  $to
-     * @param  string  $message
      * @return Collection<int, SmsResponseData>|null
      */
     public function sendSms(string $to, string $message): ?object

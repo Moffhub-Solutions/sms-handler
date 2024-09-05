@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use Illuminate\Support\Collection;
@@ -7,9 +8,6 @@ use Illuminate\Support\Facades\Http;
 class SendSmsAction
 {
     /**
-     * @param string $apiUrl
-     * @param array $payload
-     * @param string $message
      * @return Collection<int, SmsResponseData>
      */
     public function execute(string $apiUrl, array $payload, string $message): Collection
