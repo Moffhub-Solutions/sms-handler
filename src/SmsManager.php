@@ -1,8 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Moffhub\SmsHandler;
 
-use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Manager;
 use Moffhub\SmsHandler\Providers\Advanta;
 use Moffhub\SmsHandler\Providers\AfricasTalking;
@@ -20,6 +21,7 @@ class SmsManager extends Manager
     public function createAdvantaDriver(): Advanta
     {
         return new Advanta(
+            app: $this->app,
             apiKey: $this->app['config']['sms.providers.advanta.api_key'],
             apiUrl: $this->app['config']['sms.providers.advanta.api_url'],
             partnerId: $this->app['config']['sms.providers.advanta.partner_id'],

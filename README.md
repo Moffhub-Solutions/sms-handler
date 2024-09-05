@@ -2,6 +2,18 @@
 
 This library is used to send interface with the SMS API. It is used to send SMS messages to users.
 
+#### Features
+
+- [x] Send SMS
+- [ ] Send Scheduled SMS
+- [ ] Send Bulk SMS
+- [ ] Send Bulk Scheduled SMS
+- [ ] Get Message Info
+- [x] Log SMS messages in the database
+- [ ] Get SMS messages from the database
+
+#### Providers
+
 - [ ] Add Advanta sms provider
 - [ ] Add Africas Talking sms provider
 - [ ] Add Twilio sms provider
@@ -62,4 +74,23 @@ This method gets the status of a message
 The package also logs the messages and their responses in the database. You can view the messages in the database by running the command below
 
 
+### Usage
 
+```php
+use Moffhub\SmsLib\SmsLib;
+
+$sms = new SmsLib();
+
+$sms->sendSms('0700000000', 'Hello World');
+
+$sms->sendScheduledSms('0700000000', 'Hello World', '2024-12-12 12:00');
+```
+or 
+
+```php
+use Moffhub\SmsLib\SendSms;
+
+SendSms::sendSms('0700000000', 'Hello World');
+
+SendSms::sendScheduledSms('0700000000', 'Hello World', '2024-12-12 12:00');
+```

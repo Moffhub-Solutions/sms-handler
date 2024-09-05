@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 return [
     'default' => env('SMS_PROVIDER', 'advanta'),

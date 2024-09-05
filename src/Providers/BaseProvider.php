@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\CarbonImmutable;
 use Moffhub\SmsHandler\Traits\SmsProviderInterface;
 
 abstract class BaseProvider implements SmsProviderInterface
@@ -11,7 +13,7 @@ abstract class BaseProvider implements SmsProviderInterface
         return null;
     }
 
-    public function sendScheduledSms(string $to, string $message): ?object
+    public function sendScheduledSms(string $to, string $message, CarbonImmutable|string $date): ?object
     {
         return null;
     }
@@ -21,7 +23,7 @@ abstract class BaseProvider implements SmsProviderInterface
         return null;
     }
 
-    public function sendScheduledBulkSms(array $recipients, string $message): ?object
+    public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?object
     {
         return null;
     }
