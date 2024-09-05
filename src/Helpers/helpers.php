@@ -7,5 +7,5 @@ declare(strict_types=1);
  */
 function formatPhoneNumber(string $phoneNumber, string $prefix = '0', int $numberCount = -9): string
 {
-    return $prefix.substr($phoneNumber, -$numberCount);
+    return $prefix.substr($phoneNumber, $numberCount);
 }
