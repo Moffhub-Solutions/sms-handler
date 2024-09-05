@@ -10,10 +10,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
-use Moffhub\SmsHandler\Data\SmsResponseData;
+use SmsResponseData;
 use Throwable;
-
-use function Moffhub\SmsHandler\formatPhoneNumber;
 
 class Advanta extends BaseProvider
 {
