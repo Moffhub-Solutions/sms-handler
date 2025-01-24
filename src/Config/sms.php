@@ -16,6 +16,12 @@ return [
             'api_key' => env('AT_API_KEY'),
             'api_url' => env('AT_API_URL'),
         ],
+        'onfon' => [
+            'api_key' => env('ONFON_API_KEY'),
+            'api_url' => env('ONFON_API_URL'),
+            'sender_id' => env('ONFON_SENDER_ID'),
+            'client_id' => env('ONFON_CLIENT_ID'),
+        ],
     ],
     'log_channel' => env('SMS_LOG_CHANNEL', 'log'),
 ];

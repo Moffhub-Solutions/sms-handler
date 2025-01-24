@@ -8,6 +8,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Manager;
 use Moffhub\SmsHandler\Providers\Advanta;
 use Moffhub\SmsHandler\Providers\AfricasTalking;
+use Moffhub\SmsHandler\Providers\OnfonMedia;
 
 class SmsManager extends Manager
 {
@@ -34,8 +35,19 @@ class SmsManager extends Manager
     public function createAfricasTalkingDriver(): AfricasTalking
     {
         return new AfricasTalking(
-            $this->app['config']['sms.providers.provider2.api_key'],
-            $this->app['config']['sms.providers.provider2.api_url'],
+            $this->app['config']['sms.providers.at.api_key'],
+            $this->app['config']['sms.providers.at.api_url'],
+        );
+    }
+
+    public function createOnfonMediaDriver()
+    {
+        return new OnfonMedia(
+            app: $this->app,
+            apiKey: $this->app['config']['sms.providers.onfon.api_key'],
+            apiUrl: $this->app['config']['sms.providers.onfon.api_url'],
+            senderId: $this->app['config']['sms.providers.onfon.sender_id'],
+            clientId: $this->app['config']['sms.providers.onfon.client_id'],
         );
     }
 

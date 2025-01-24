@@ -26,7 +26,7 @@ This library is used to send interface with the SMS API. It is used to send SMS 
 You can install the package via composer:
 
 ```bash
-SMS_PROVIDER=advanta
+SMS_PROVIDER=advanta // or africastalking, onfonmedia
 
 ADVANTA_API_KEY=
 ADVANTA_API_URL=
@@ -36,6 +36,11 @@ ADVANTA_SHORT_CODE=
 
 AT_API_KEY=
 AT_API_URL=
+
+ONFON_API_KEY=
+ONFON_API_URL=
+ONFON_SENDER_ID=
+ONFON_CLIENT_ID=
 
 SMS_LOG_CHANNEL=
 ````
