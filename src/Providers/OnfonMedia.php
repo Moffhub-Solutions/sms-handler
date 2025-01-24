@@ -1,11 +1,11 @@
 <?php
 
 namespace Moffhub\SmsHandler\Providers;
+
 use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Moffhub\SmsHandler\Actions\Onfon\SendSmsAction;
-use Throwable;
 
 class OnfonMedia extends BaseProvider
 {
@@ -48,11 +48,11 @@ class OnfonMedia extends BaseProvider
                 'ApiKey' => $this->apiKey,
                 'ClientId' => $this->clientId,
                 'SenderId' => $this->senderId,
-                'MessageParameters' =>[
+                'MessageParameters' => [
                     [
                         'Number' => $phoneNumber,
                         'Text' => $message,
-                    ]
+                    ],
                 ],
                 'IsUnicode' => true,
                 'IsFlash' => true,
@@ -73,7 +73,7 @@ class OnfonMedia extends BaseProvider
         return collect($recipients)->chunk(100)->each(function ($chunk) use ($message) {
             $payload = $chunk->map(function ($recipient) use ($message) {
                 return [
-                    'Number' =>  formatPhoneNumber($recipient, '254'),
+                    'Number' => formatPhoneNumber($recipient, '254'),
                     'Text' => $message,
                 ];
             });
