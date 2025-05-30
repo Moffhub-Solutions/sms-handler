@@ -7,7 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Moffhub\SmsHandler\Actions\Onfon\SendSmsAction;
 
-class OnfonMedia extends BaseProvider
+class OnfonMediaProvider extends BaseProvider
 {
     public function __construct(
         protected Application $app,

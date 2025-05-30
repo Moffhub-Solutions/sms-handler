@@ -14,7 +14,7 @@ use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
 use Throwable;
 
-class Advanta extends BaseProvider
+class AdvantaProvider extends BaseProvider
 {
     public function __construct(
         protected Application $app,

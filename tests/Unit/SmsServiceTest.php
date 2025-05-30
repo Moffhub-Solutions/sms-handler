@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Tests\Unit;
 
-use Moffhub\SmsHandler\Providers\Advanta;
+use Moffhub\SmsHandler\Providers\AdvantaProvider;
 use Moffhub\SmsHandler\Services\SmsService;
 use Moffhub\SmsHandler\SmsManager;
 use Moffhub\SmsHandler\Tests\TestCase;
@@ -30,7 +30,7 @@ class SmsServiceTest extends TestCase
      */
     public function test_fails_to_send_sms(): void
     {
-        $provider = $this->createMock(Advanta::class);
+        $provider = $this->createMock(AdvantaProvider::class);
         $provider->method('sendSms')->willReturn(null);
         $this->smsManager->method('driver')->willReturn($provider);
 
@@ -46,7 +46,7 @@ class SmsServiceTest extends TestCase
      */
     public function test_sends_sms_successfully(): void
     {
-        $provider = $this->createMock(Advanta::class);
+        $provider = $this->createMock(AdvantaProvider::class);
         $provider->method('sendSms')->willReturn(collect(['log' => 'message sent']));
         $this->smsManager->method('driver')->willReturn($provider);
 

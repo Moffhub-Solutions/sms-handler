@@ -6,7 +6,7 @@ namespace Moffhub\SmsHandler\Providers;
 
 use Illuminate\Support\Collection;
 
-class AfricasTalking extends BaseProvider
+class AfricasTalkingProvider extends BaseProvider
 {
     public function __construct(
         protected string $apiKey,
