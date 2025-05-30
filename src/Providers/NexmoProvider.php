@@ -14,8 +14,7 @@ class NexmoProvider extends BaseProvider
         protected string $secret,
         protected string $from = 'NEXMO',
         protected string $apiUrl = 'https://rest.nexmo.com/sms/json',
-    ) {
-    }
+    ) {}
 
     public function sendSms(string $to, string $message): ?Collection
     {

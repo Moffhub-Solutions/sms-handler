@@ -15,6 +15,7 @@ class SendSmsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public string $to;
+
     public string $message;
 
     public function __construct(string $to, string $message)

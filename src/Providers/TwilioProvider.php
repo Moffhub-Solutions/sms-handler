@@ -14,8 +14,7 @@ class TwilioProvider extends BaseProvider
         protected string $authToken,
         protected string $from,
         protected string $apiUrl = 'https://api.twilio.com',
-    ) {
-    }
+    ) {}
 
     public function sendSms(string $to, string $message): ?Collection
     {

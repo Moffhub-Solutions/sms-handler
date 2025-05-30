@@ -49,6 +49,7 @@ abstract class CustomProvider extends BaseProvider
             return $this->handleResponse($response);
         } catch (Throwable $e) {
             $this->handleException($e, $to, $message);
+
             return null;
         }
     }
