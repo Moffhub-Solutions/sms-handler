@@ -65,7 +65,7 @@ class SmsHandlerFacadeTest extends TestCase
         Sms::shouldReceive('getSmsDeliveryStatus')
             ->once()
             ->with('messageId')
-            ->andReturn(null);
+            ->andReturn('');
 
         $status = Sms::getSmsDeliveryStatus('messageId');
         $this->assertNull($status);

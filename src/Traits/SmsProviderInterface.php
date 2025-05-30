@@ -20,4 +20,14 @@ interface SmsProviderInterface
     public function getSmsDeliveryStatus(string $messageId): string;
 
     public function getSmsBalance(): int;
+
+    //    public function sendRecurringSms(
+    //        string $to,
+    //        string $message,
+    //        Carbon|CarbonImmutable|string $startDate,
+    //        Carbon|CarbonImmutable|string $endDate,
+    //        int $interval,
+    //        bool $startImmediately = false
+    //    ): ?Collection;
+
 }

@@ -29,6 +29,8 @@ class SmsManagerTest extends TestCase
                 'sms.providers.provider2.api_key' => 'africas_talking_api_key',
                 'sms.providers.provider2.api_url' => 'africas_talking_api_url',
                 'sms.default' => 'advanta',
+                'sms.providers.at.api_key' => 'africas_talking_api_key',
+                'sms.providers.at.api_url' => 'africas_talking_api_url',
             ]],
         ]);
 
