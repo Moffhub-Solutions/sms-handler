@@ -1,5 +1,8 @@
-## SMS Lib
+## SMS Handler
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/moffhub/sms-lib.svg?style=flat-square)](https://packagist.org/packages/moffhub/sms-lib)
+[![Total Downloads](https://img.shields.io/packagist/dt/moffhub/sms-lib.svg?style=flat-square)](https://packagist.org/packages/moffhub/sms-lib)
+    
 This library is used to send interface with the SMS API. It is used to send SMS messages to users.
 
 #### Features
@@ -63,16 +66,18 @@ SMS_LOG_CHANNEL=log
 ````
 
 ```bash
-composer require moffhub/sms-lib
+composer require moffhub/sms-handler
 ```
 
 You can publish the config file with:
 
 ```bash
-php artisan vendor:publish --provider="Moffhub\SmsLib\SmsLibServiceProvider" --tag="config"
+php artisan vendor:publish --provider="Moffhub\SmsHandler\SmsHandlerServiceProvider" --tag=config
+php artisan vendor:publish --tag=migrations
+php artisan migrate
 ```
 
-### Configuration
+### Available Methods
 The library provides simple methods you can use
 
 ```sendSms($to, $message)```
@@ -99,9 +104,9 @@ The package also logs the messages and their responses in the database. You can 
 ### Usage
 
 ```php
-use Moffhub\SmsLib\SmsLib;
+use Moffhub\SmsHandler\SmsHandler;
 
-$sms = new SmsLib();
+$sms = new SmsHandler();
 
 $sms->sendSms('0700000000', 'Hello World');
 
@@ -110,7 +115,7 @@ $sms->sendScheduledSms('0700000000', 'Hello World', '2024-12-12 12:00');
 or 
 
 ```php
-use Moffhub\SmsLib\SendSms;
+use Moffhub\SmsHandler\Facades\Sms;
 
 SendSms::sendSms('0700000000', 'Hello World');
 
@@ -184,3 +189,4 @@ update .env file to use your custom provider:
 SMS_PROVIDER=custom
 MY_CUSTOM_API_KEY=super-secret
 ```
+

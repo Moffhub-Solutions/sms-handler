@@ -1,33 +1,58 @@
 {
     "name": "moffhub/sms-handler",
-    "description": "A simple sms integration helper",
+    "description": "A simple SMS integration helper for Laravel",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "moffhub",
         "sms",
         "laravel",
-        "helper"
+        "helper",
+        "integration",
+        "twilio",
+        "nexmo",
+        "africastalking",
+        "sms gateway",
+        "sms handler",
+        "advanta",
+        "onfon"
     ],
-    "autoload": {
-        "files": [
-            "src/Helpers/helpers.php"
-        ],
-        "psr-4": {
-            "Moffhub\\SmsHandler\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Moffhub\\SmsHandler\\Tests\\": "tests/"
-        }
-    },
     "authors": [
         {
             "name": "Moffat Munene",
             "email": "moffmu@gmail.com"
         }
     ],
+    "contributors": [
+        {
+            "name": "Moffat Munene",
+            "email": "moffmu@gmail.com",
+            "homepage": "https://github.com/MOFFROUGH",
+            "role": "Maintainer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^12.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.3",
+        "laravel/pint": "^1.17",
+        "orchestra/testbench": "^10.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Moffhub\\SmsHandler\\": "src/"
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Moffhub\\SmsHandler\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -37,15 +62,6 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "require": {
-        "php": "^8.3",
-        "laravel/framework": "^12.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^11.3",
-        "laravel/pint": "^1.17",
-        "orchestra/testbench": "v10.1"
-    },
     "scripts": {
         "check-code": [
             "@lint",
