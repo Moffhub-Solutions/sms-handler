@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Foundation\Application;
@@ -90,7 +91,7 @@ class Advanta extends BaseProvider
     /**
      * @return Collection<int, SmsResponseData>|null
      */
-    public function sendScheduledSms(string $to, string $message, CarbonImmutable|string $date): ?Collection
+    public function sendScheduledSms(string $to, string $message, CarbonImmutable|string|Carbon $date): ?Collection
     {
         try {
             return $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [
