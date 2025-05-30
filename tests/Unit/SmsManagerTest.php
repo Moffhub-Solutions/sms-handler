@@ -10,6 +10,7 @@ use Moffhub\SmsHandler\Providers\AfricasTalkingProvider;
 use Moffhub\SmsHandler\Providers\NexmoProvider;
 use Moffhub\SmsHandler\Providers\TwilioProvider;
 use Moffhub\SmsHandler\SmsManager;
+use Moffhub\SmsHandler\Tests\Support\DummyCustomProvider;
 use Moffhub\SmsHandler\Tests\TestCase;
 
 class SmsManagerTest extends TestCase
@@ -89,5 +90,26 @@ class SmsManagerTest extends TestCase
         $this->assertEquals('twilio_token', $driver->getAuthToken());
         $this->assertEquals('+1234567890', $driver->getFrom());
         $this->assertEquals('https://api.twilio.com', $driver->getApiUrl());
+    }
+
+    public function test_custom_provider_registration(): void
+    {
+        $this->smsManager->extend('custom_test', function () {
+            return new DummyCustomProvider;
+        });
+
+        $provider = $this->smsManager->driver('custom_test');
+
+        $this->assertInstanceOf(DummyCustomProvider::class, $provider);
+        $this->assertEquals('https://dummy.com/send', $provider->getApiUrl());
+
+        $payload = $provider->buildPayload('0712345678', 'Test Message');
+        $this->assertEquals([
+            'to' => '0712345678',
+            'text' => 'Test Message',
+        ], $payload);
+
+        $response = $provider->handleResponse(['status' => 'ok']);
+        $this->assertEquals('ok', $response?->get('status'));
     }
 }
