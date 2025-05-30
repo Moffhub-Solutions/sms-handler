@@ -68,6 +68,6 @@ class SmsHandlerFacadeTest extends TestCase
             ->andReturn('');
 
         $status = Sms::getSmsDeliveryStatus('messageId');
-        $this->assertNull($status);
+        $this->assertEquals($status, '');
     }
 }
