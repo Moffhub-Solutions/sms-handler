@@ -35,7 +35,7 @@ class SmsManagerTest extends TestCase
         $this->smsManager = new SmsManager($this->app);
     }
 
-    public function testCreatesAdvantaDriver(): void
+    public function test_creates_advanta_driver(): void
     {
         $driver = $this->smsManager->createAdvantaDriver();
         $this->assertInstanceOf(Advanta::class, $driver);
@@ -43,7 +43,7 @@ class SmsManagerTest extends TestCase
         $this->assertEquals('advanta_api_url', $driver->getApiUrl());
     }
 
-    public function testCreatesAfricasTalkingDriver(): void
+    public function test_creates_africas_talking_driver(): void
     {
         $driver = $this->smsManager->createAfricasTalkingDriver();
         $this->assertInstanceOf(AfricasTalking::class, $driver);
@@ -51,7 +51,7 @@ class SmsManagerTest extends TestCase
         $this->assertEquals('africas_talking_api_url', $driver->getApiUrl());
     }
 
-    public function testGetsDefaultDriver(): void
+    public function test_gets_default_driver(): void
     {
         $defaultDriver = $this->smsManager->getDefaultDriver();
         $this->assertEquals('advanta', $defaultDriver);

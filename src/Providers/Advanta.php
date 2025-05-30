@@ -23,7 +23,7 @@ class Advanta extends BaseProvider
         protected string $shortCode,
         protected ?string $bulkApiUrl = null,
     ) {
-        ///
+        // /
     }
 
     public function getApiKey(): string

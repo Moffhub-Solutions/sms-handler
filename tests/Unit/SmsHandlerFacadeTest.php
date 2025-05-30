@@ -9,7 +9,7 @@ use Moffhub\SmsHandler\Tests\TestCase;
 
 class SmsHandlerFacadeTest extends TestCase
 {
-    public function testSendsSmsFacadeSuccessfully(): void
+    public function test_sends_sms_facade_successfully(): void
     {
         Sms::shouldReceive('sendSms')
             ->once()
@@ -19,7 +19,7 @@ class SmsHandlerFacadeTest extends TestCase
         Sms::sendSms('1234567890', 'Test message');
     }
 
-    public function testFailsToSendSmsFacade(): void
+    public function test_fails_to_send_sms_facade(): void
     {
         Sms::shouldReceive('sendSms')
             ->once()
@@ -29,7 +29,7 @@ class SmsHandlerFacadeTest extends TestCase
         Sms::sendSms('1234567890', 'Test message');
     }
 
-    public function testSendsBulkSmsFacadeSuccessfully(): void
+    public function test_sends_bulk_sms_facade_successfully(): void
     {
         Sms::shouldReceive('sendBulkSms')
             ->once()
@@ -39,7 +39,7 @@ class SmsHandlerFacadeTest extends TestCase
         Sms::sendBulkSms(['1234567890', '0987654321'], 'Test message');
     }
 
-    public function testFailsToSendBulkSmsFacade(): void
+    public function test_fails_to_send_bulk_sms_facade(): void
     {
         Sms::shouldReceive('sendBulkSms')
             ->once()
@@ -49,7 +49,7 @@ class SmsHandlerFacadeTest extends TestCase
         Sms::sendBulkSms(['1234567890', '0987654321'], 'Test message');
     }
 
-    public function testGetsSmsDeliveryStatusFacadeSuccessfully(): void
+    public function test_gets_sms_delivery_status_facade_successfully(): void
     {
         Sms::shouldReceive('getSmsDeliveryStatus')
             ->once()
@@ -60,7 +60,7 @@ class SmsHandlerFacadeTest extends TestCase
         $this->assertEquals('delivered', $status);
     }
 
-    public function testFailsToGetSmsDeliveryStatusFacade(): void
+    public function test_fails_to_get_sms_delivery_status_facade(): void
     {
         Sms::shouldReceive('getSmsDeliveryStatus')
             ->once()

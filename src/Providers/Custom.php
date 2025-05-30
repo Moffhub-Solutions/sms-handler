@@ -27,10 +27,10 @@ abstract class CustomProvider extends BaseProvider
 
     /**
      * Handle and transform the API response
-     * @param mixed $response The raw API response
+     *
+     * @param  mixed  $response  The raw API response
      */
     abstract protected function handleResponse(mixed $response): ?Collection;
-
 
     /**
      * Format phone number according to provider requirements
@@ -78,9 +78,3 @@ abstract class CustomProvider extends BaseProvider
         return Http::post($url, $payload);
     }
 }
-
-
-
-
-
-

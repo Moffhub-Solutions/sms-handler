@@ -18,7 +18,7 @@ class SmsServiceTest extends TestCase
     /**
      * @throws Exception
      */
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->smsManager = $this->createMock(SmsManager::class);
@@ -28,7 +28,7 @@ class SmsServiceTest extends TestCase
      * @throws Throwable
      * @throws Exception
      */
-    public function testFailsToSendSms(): void
+    public function test_fails_to_send_sms(): void
     {
         $provider = $this->createMock(Advanta::class);
         $provider->method('sendSms')->willReturn(null);
@@ -44,7 +44,7 @@ class SmsServiceTest extends TestCase
      * @throws Throwable
      * @throws Exception
      */
-    public function testSendsSmsSuccessfully(): void
+    public function test_sends_sms_successfully(): void
     {
         $provider = $this->createMock(Advanta::class);
         $provider->method('sendSms')->willReturn(collect(['log' => 'message sent']));

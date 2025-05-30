@@ -16,7 +16,7 @@ class OnfonMedia extends BaseProvider
         protected string $senderId,
         protected string $clientId,
     ) {
-        ///
+        // /
     }
 
     public function getApiKey(): string

@@ -30,6 +30,7 @@ class SmsService
         } else {
             $this->logSms(get_class($this->smsManager->driver()), $messageId, 'Delivery status check failed', false);
         }
+
         return 'not delivered';
     }
 
@@ -65,7 +66,7 @@ class SmsService
                 $date = Carbon::parse($date)->toDateTimeString();
                 break;
         }
-        if (!$date->isFuture()) {
+        if (! $date->isFuture()) {
             throw new Exception('Date must be in the future');
         }
 

@@ -14,6 +14,6 @@ class SmsResponseData
         public string $provider,
         public array $response = []
     ) {
-        ///
+        // /
     }
 }
