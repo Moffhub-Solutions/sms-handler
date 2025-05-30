@@ -33,6 +33,14 @@ class SmsManagerTest extends TestCase
                 'sms.default' => 'advanta',
                 'sms.providers.at.api_key' => 'africas_talking_api_key',
                 'sms.providers.at.api_url' => 'africas_talking_api_url',
+                'sms.providers.nexmo.key' => 'nexmo_key',
+                'sms.providers.nexmo.secret' => 'nexmo_secret',
+                'sms.providers.nexmo.from' => 'nexmo_sender',
+                'sms.providers.nexmo.api_url' => 'https://rest.nexmo.com/sms/json',
+                'sms.providers.twilio.account_sid' => 'twilio_sid',
+                'sms.providers.twilio.auth_token' => 'twilio_token',
+                'sms.providers.twilio.from' => '+1234567890',
+                'sms.providers.twilio.api_url' => 'https://api.twilio.com',
             ]],
         ]);
 
@@ -63,35 +71,23 @@ class SmsManagerTest extends TestCase
 
     public function test_creates_nexmo_driver(): void
     {
-        $this->app->method('offsetGet')->willReturnMap([
-            ['config', [
-                'sms.providers.nexmo.key' => 'nexmo_key',
-                'sms.providers.nexmo.secret' => 'nexmo_secret',
-                'sms.providers.nexmo.from' => 'nexmo_sender',
-                'sms.providers.nexmo.api_url' => 'https://rest.nexmo.com/sms/json',
-            ]],
-        ]);
-
-        $smsManager = new SmsManager($this->app);
-        $driver = $smsManager->createNexmoDriver();
+        $driver = $this->smsManager->createNexmoDriver();
 
         $this->assertInstanceOf(NexmoProvider::class, $driver);
+        $this->assertEquals('nexmo_key', $driver->getKey());
+        $this->assertEquals('nexmo_secret', $driver->getSecret());
+        $this->assertEquals('nexmo_sender', $driver->getFrom());
+        $this->assertEquals('https://rest.nexmo.com/sms/json', $driver->getApiUrl());
     }
 
     public function test_creates_twilio_driver(): void
     {
-        $this->app->method('offsetGet')->willReturnMap([
-            ['config', [
-                'sms.providers.twilio.account_sid' => 'twilio_sid',
-                'sms.providers.twilio.auth_token' => 'twilio_token',
-                'sms.providers.twilio.from' => '+1234567890',
-                'sms.providers.twilio.api_url' => 'https://api.twilio.com',
-            ]],
-        ]);
-
-        $smsManager = new SmsManager($this->app);
-        $driver = $smsManager->createTwilioDriver();
+        $driver = $this->smsManager->createTwilioDriver();
 
         $this->assertInstanceOf(TwilioProvider::class, $driver);
+        $this->assertEquals('twilio_sid', $driver->getAccountSid());
+        $this->assertEquals('twilio_token', $driver->getAuthToken());
+        $this->assertEquals('+1234567890', $driver->getFrom());
+        $this->assertEquals('https://api.twilio.com', $driver->getApiUrl());
     }
 }
