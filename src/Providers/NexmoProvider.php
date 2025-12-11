@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Moffhub\SmsHandler\Data\SmsResponseData;
 
 class NexmoProvider extends BaseProvider
 {
@@ -38,7 +41,15 @@ class NexmoProvider extends BaseProvider
         return $this->apiUrl;
     }
 
-    public function sendSms(string $to, string $message): ?Collection
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
+    public function sendScheduledSms(string $to, string $message, string|Carbon|CarbonImmutable $date): ?Collection
+    {
+        return $this->sendSms($to, $message, $date);
+    }
+
+    public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
         $response = Http::post($this->apiUrl, [
             'api_key' => $this->key,

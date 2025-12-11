@@ -2,10 +2,13 @@
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Moffhub\SmsHandler\Actions\Onfon\SendSmsAction;
+use Moffhub\SmsHandler\Data\SmsResponseData;
 
 class OnfonMediaProvider extends BaseProvider
 {
@@ -39,7 +42,16 @@ class OnfonMediaProvider extends BaseProvider
         return $this->clientId;
     }
 
-    public function sendSms(string $to, string $message): ?Collection
+
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
+    public function sendScheduledSms(string $to, string $message, string|Carbon|CarbonImmutable $date): ?Collection
+    {
+        return $this->sendSms($to, $message, $date);
+    }
+
+    public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
         $phoneNumber = formatPhoneNumber($to, '254');
 

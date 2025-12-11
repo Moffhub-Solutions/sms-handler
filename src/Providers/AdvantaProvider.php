@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
+use Moffhub\SmsHandler\Jobs\SendSmsJob;
 use Throwable;
 
 class AdvantaProvider extends BaseProvider
@@ -93,24 +94,7 @@ class AdvantaProvider extends BaseProvider
      */
     public function sendScheduledSms(string $to, string $message, CarbonImmutable|string|Carbon $date): ?Collection
     {
-        try {
-            return $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [
-                'apikey' => $this->apiKey,
-                'message' => $message,
-                'mobile' => $to,
-                'partnerID' => $this->partnerId,
-                'shortcode' => $this->shortCode,
-                'sendtime' => $date->format('Y-m-d H:i:s'),
-            ], $message);
-
-        } catch (Throwable $e) {
-            logger()->error($e->getMessage(), [
-                'to' => $to,
-                'message' => $message,
-            ]);
-
-            return null;
-        }
+        return $this->sendSms($to, $message, $date);
     }
 
     /**
@@ -118,9 +102,13 @@ class AdvantaProvider extends BaseProvider
      *
      * @return Collection<int, SmsResponseData>|null
      */
-    public function sendSms(string $to, string $message): ?Collection
+    public function sendSms(string $to, string $message, Carbon|string|null $scheduleAt = null): ?Collection
     {
         $phoneNumber = formatPhoneNumber($to);
+        if ($scheduleAt) {
+            SendSmsJob::dispatchAt($to, $message, $scheduleAt);
+            return collect([['status' => 'scheduled', 'to' => $to, 'message' => $message]]);
+        }
 
         try {
             return $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [

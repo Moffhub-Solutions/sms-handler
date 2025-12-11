@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
@@ -38,7 +39,7 @@ class TwilioProvider extends BaseProvider
         return $this->apiUrl;
     }
 
-    public function sendSms(string $to, string $message): ?Collection
+    public function sendSms(string $to, string $message,string|null|Carbon $scheduleAt = null): ?Collection
     {
         $endpoint = "{$this->apiUrl}/2010-04-01/Accounts/{$this->accountSid}/Messages.json";
 

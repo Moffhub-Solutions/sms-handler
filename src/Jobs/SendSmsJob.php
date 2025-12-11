@@ -2,6 +2,7 @@
 
 namespace Moffhub\SmsHandler\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -35,5 +36,11 @@ class SendSmsJob implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    public static function dispatchAt(string $to, string $message, Carbon|string $when): void
+    {
+        $time = $when instanceof Carbon ? $when : Carbon::parse($when);
+        self::dispatch($to, $message)->delay($time);
     }
 }

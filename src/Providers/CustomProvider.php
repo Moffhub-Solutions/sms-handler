@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\Carbon;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
@@ -30,7 +31,7 @@ abstract class CustomProvider extends BaseProvider
         return formatPhoneNumber($number, '254');
     }
 
-    public function sendSms(string $to, string $message): ?Collection
+    public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
         try {
             $to = $this->formatPhoneNumber($to);
