@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Http;
 use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
-use Throwable;
 
 class AdvantaProvider extends BaseProvider
 {
@@ -107,6 +106,7 @@ class AdvantaProvider extends BaseProvider
         $phoneNumber = formatPhoneNumber($to);
         if ($scheduleAt) {
             SendSmsJob::dispatchAt($to, $message, $scheduleAt);
+
             return collect([['status' => 'scheduled', 'to' => $to, 'message' => $message]]);
         }
 

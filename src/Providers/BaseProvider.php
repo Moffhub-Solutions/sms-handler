@@ -13,7 +13,7 @@ use Moffhub\SmsHandler\Traits\SmsProviderInterface;
 
 abstract class BaseProvider implements SmsProviderInterface
 {
-    public function sendSms(string $to, string $message,  Carbon|string|null $scheduleAt = null): ?Collection
+    public function sendSms(string $to, string $message, Carbon|string|null $scheduleAt = null): ?Collection
     {
         throw new BadMethodCallException(static::class.' must implement sendSms.');
     }

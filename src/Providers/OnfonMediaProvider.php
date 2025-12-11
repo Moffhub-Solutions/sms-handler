@@ -42,7 +42,6 @@ class OnfonMediaProvider extends BaseProvider
         return $this->clientId;
     }
 
-
     /**
      * @return Collection<int, SmsResponseData>|null
      */

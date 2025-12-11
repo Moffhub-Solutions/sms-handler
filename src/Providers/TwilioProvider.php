@@ -39,7 +39,7 @@ class TwilioProvider extends BaseProvider
         return $this->apiUrl;
     }
 
-    public function sendSms(string $to, string $message,string|null|Carbon $scheduleAt = null): ?Collection
+    public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
         $endpoint = "{$this->apiUrl}/2010-04-01/Accounts/{$this->accountSid}/Messages.json";
 
