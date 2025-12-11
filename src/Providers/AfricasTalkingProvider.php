@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Providers;
 
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Moffhub\SmsHandler\Data\SmsResponseData;
 
-class AfricasTalking extends BaseProvider
+class AfricasTalkingProvider extends BaseProvider
 {
     public function __construct(
         protected string $apiKey,
@@ -25,9 +28,17 @@ class AfricasTalking extends BaseProvider
         return $this->apiUrl;
     }
 
-    public function sendSms(string $to, string $message): ?Collection
+    public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
         return null;
+    }
+
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
+    public function sendScheduledSms(string $to, string $message, string|Carbon|CarbonImmutable $date): ?Collection
+    {
+        return $this->sendSms($to, $message, $date);
     }
 
     public function sendBulkSms(array $recipients, string $message): ?Collection

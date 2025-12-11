@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Moffhub\SmsHandler\Tests\Unit;
 
 use Illuminate\Foundation\Application;
-use Moffhub\SmsHandler\Providers\Advanta;
-use Moffhub\SmsHandler\Providers\AfricasTalking;
+use Moffhub\SmsHandler\Providers\AdvantaProvider;
+use Moffhub\SmsHandler\Providers\AfricasTalkingProvider;
+use Moffhub\SmsHandler\Providers\NexmoProvider;
+use Moffhub\SmsHandler\Providers\TwilioProvider;
 use Moffhub\SmsHandler\SmsManager;
+use Moffhub\SmsHandler\Tests\Support\DummyCustomProvider;
 use Moffhub\SmsHandler\Tests\TestCase;
 
 class SmsManagerTest extends TestCase
@@ -31,6 +34,14 @@ class SmsManagerTest extends TestCase
                 'sms.default' => 'advanta',
                 'sms.providers.at.api_key' => 'africas_talking_api_key',
                 'sms.providers.at.api_url' => 'africas_talking_api_url',
+                'sms.providers.nexmo.key' => 'nexmo_key',
+                'sms.providers.nexmo.secret' => 'nexmo_secret',
+                'sms.providers.nexmo.from' => 'nexmo_sender',
+                'sms.providers.nexmo.api_url' => 'https://rest.nexmo.com/sms/json',
+                'sms.providers.twilio.account_sid' => 'twilio_sid',
+                'sms.providers.twilio.auth_token' => 'twilio_token',
+                'sms.providers.twilio.from' => '+1234567890',
+                'sms.providers.twilio.api_url' => 'https://api.twilio.com',
             ]],
         ]);
 
@@ -40,7 +51,7 @@ class SmsManagerTest extends TestCase
     public function test_creates_advanta_driver(): void
     {
         $driver = $this->smsManager->createAdvantaDriver();
-        $this->assertInstanceOf(Advanta::class, $driver);
+        $this->assertInstanceOf(AdvantaProvider::class, $driver);
         $this->assertEquals('advanta_api_key', $driver->getApiKey());
         $this->assertEquals('advanta_api_url', $driver->getApiUrl());
     }
@@ -48,7 +59,7 @@ class SmsManagerTest extends TestCase
     public function test_creates_africas_talking_driver(): void
     {
         $driver = $this->smsManager->createAfricasTalkingDriver();
-        $this->assertInstanceOf(AfricasTalking::class, $driver);
+        $this->assertInstanceOf(AfricasTalkingProvider::class, $driver);
         $this->assertEquals('africas_talking_api_key', $driver->getApiKey());
         $this->assertEquals('africas_talking_api_url', $driver->getApiUrl());
     }
@@ -57,5 +68,48 @@ class SmsManagerTest extends TestCase
     {
         $defaultDriver = $this->smsManager->getDefaultDriver();
         $this->assertEquals('advanta', $defaultDriver);
+    }
+
+    public function test_creates_nexmo_driver(): void
+    {
+        $driver = $this->smsManager->createNexmoDriver();
+
+        $this->assertInstanceOf(NexmoProvider::class, $driver);
+        $this->assertEquals('nexmo_key', $driver->getKey());
+        $this->assertEquals('nexmo_secret', $driver->getSecret());
+        $this->assertEquals('nexmo_sender', $driver->getFrom());
+        $this->assertEquals('https://rest.nexmo.com/sms/json', $driver->getApiUrl());
+    }
+
+    public function test_creates_twilio_driver(): void
+    {
+        $driver = $this->smsManager->createTwilioDriver();
+
+        $this->assertInstanceOf(TwilioProvider::class, $driver);
+        $this->assertEquals('twilio_sid', $driver->getAccountSid());
+        $this->assertEquals('twilio_token', $driver->getAuthToken());
+        $this->assertEquals('+1234567890', $driver->getFrom());
+        $this->assertEquals('https://api.twilio.com', $driver->getApiUrl());
+    }
+
+    public function test_custom_provider_registration(): void
+    {
+        $this->smsManager->extend('custom_test', function () {
+            return new DummyCustomProvider;
+        });
+
+        $provider = $this->smsManager->driver('custom_test');
+
+        $this->assertInstanceOf(DummyCustomProvider::class, $provider);
+        $this->assertEquals('https://dummy.com/send', $provider->getApiUrl());
+
+        $payload = $provider->buildPayload('0712345678', 'Test Message');
+        $this->assertEquals([
+            'to' => '0712345678',
+            'text' => 'Test Message',
+        ], $payload);
+
+        $response = $provider->handleResponse(['status' => 'ok']);
+        $this->assertEquals('ok', $response?->get('status'));
     }
 }

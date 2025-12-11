@@ -22,6 +22,19 @@ return [
             'sender_id' => env('ONFON_SENDER_ID'),
             'client_id' => env('ONFON_CLIENT_ID'),
         ],
+        'nexmo' => [
+            'key' => env('NEXMO_KEY'),
+            'secret' => env('NEXMO_SECRET'),
+            'from' => env('NEXMO_FROM', 'NEXMO'),
+            'api_url' => env('NEXMO_API_URL', 'https://rest.nexmo.com/sms/json'),
+        ],
+
+        'twilio' => [
+            'account_sid' => env('TWILIO_SID'),
+            'auth_token' => env('TWILIO_TOKEN'),
+            'from' => env('TWILIO_FROM'),
+            'api_url' => env('TWILIO_API_URL', 'https://api.twilio.com'),
+        ],
     ],
     'log_channel' => env('SMS_LOG_CHANNEL', 'log'),
 ];
