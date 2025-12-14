@@ -31,7 +31,7 @@ class SmsHandlerServiceProvider extends ServiceProvider
             __DIR__.'/Config/sms.php' => config_path('sms.php'),
         ], 'config');
 
-        $migrationStub = __DIR__.'/../database/migrations/create_sms_logs_table.php.stub';
+        $migrationStub = __DIR__.'/Database/Migrations/create_sms_logs_table.php.stub';
         $migrationFilename = 'create_sms_logs_table.php';
 
         $existing = collect(glob(database_path("migrations/*_{$migrationFilename}")))->first();
