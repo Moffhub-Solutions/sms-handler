@@ -8,8 +8,8 @@ use BadMethodCallException;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Moffhub\SmsHandler\Contracts\SmsProviderInterface;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
-use Moffhub\SmsHandler\Traits\SmsProviderInterface;
 
 abstract class BaseProvider implements SmsProviderInterface
 {
@@ -23,19 +23,19 @@ abstract class BaseProvider implements SmsProviderInterface
         throw new BadMethodCallException(static::class.' must implement sendScheduledSms.');
     }
 
-    public function sendBulkSms(array $recipients, string $message): ?object
+    public function sendBulkSms(array $recipients, string $message): ?Collection
     {
         throw new BadMethodCallException(static::class.' must implement sendBulkSms.');
     }
 
-    public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?object
+    public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
     {
         throw new BadMethodCallException(static::class.' must implement sendScheduledBulkSms.');
     }
 
     public function getSmsDeliveryStatus(string $messageId): string
     {
-        return '';
+        return 'pending';
     }
 
     public function getSmsBalance(): int
@@ -48,7 +48,7 @@ abstract class BaseProvider implements SmsProviderInterface
         string $message,
         Carbon|string $startDate,
         Carbon|string $endDate,
-        int $interval,
+        int $intervalDays,
         bool $startImmediately = false
     ): void {
         $start = $startDate instanceof Carbon ? $startDate : Carbon::parse($startDate);
@@ -58,13 +58,13 @@ abstract class BaseProvider implements SmsProviderInterface
             SendSmsJob::dispatch($to, $message);
         }
 
-        $next = $start->copy();
+        $nextDate = $start->copy();
 
-        while ($next->lt($end)) {
-            $next->addDays($interval);
+        while ($nextDate->lt($end)) {
+            $nextDate->addDays($intervalDays);
 
-            if ($next->lte($end)) {
-                SendSmsJob::dispatch($to, $message)->delay($next);
+            if ($nextDate->lte($end)) {
+                SendSmsJob::dispatch($to, $message)->delay($nextDate);
             }
         }
     }

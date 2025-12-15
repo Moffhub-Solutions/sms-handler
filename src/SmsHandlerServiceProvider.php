@@ -12,6 +12,8 @@ class SmsHandlerServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/Config/sms.php', 'sms');
+
         $this->app->singleton(SmsManager::class, function ($app) {
             return new SmsManager($app);
         });
@@ -29,17 +31,11 @@ class SmsHandlerServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__.'/Config/sms.php' => config_path('sms.php'),
-        ], 'config');
+        ], 'sms-config');
 
-        $migrationStub = __DIR__.'/Database/Migrations/create_sms_logs_table.php.stub';
-        $migrationFilename = 'create_sms_logs_table.php';
-
-        $existing = collect(glob(database_path("migrations/*_{$migrationFilename}")))->first();
-        $targetPath = $existing ?: database_path('migrations/'.date('Y_m_d_His')."_{$migrationFilename}");
-
-        $this->publishes([
-            $migrationStub => $targetPath,
-        ], 'migrations');
+        $this->publishesMigrations([
+            __DIR__.'/Database/Migrations' => database_path('migrations'),
+        ], 'sms-migrations');
 
         $this->app->singleton(SmsChannel::class, function ($app) {
             return new SmsChannel($app->make(SmsService::class));

@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Moffhub\SmsHandler\Providers;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Moffhub\SmsHandler\Data\SmsResponseData;
+use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
+use Moffhub\SmsHandler\Jobs\SendSmsJob;
 use Throwable;
 
 abstract class CustomProvider extends BaseProvider
@@ -33,26 +37,95 @@ abstract class CustomProvider extends BaseProvider
 
     public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
+        if ($scheduleAt) {
+            return $this->scheduleSmsSend($to, $message, $scheduleAt);
+        }
+
         try {
-            $to = $this->formatPhoneNumber($to);
+            $formattedTo = $this->formatPhoneNumber($to);
 
-            $this->beforeSend($to, $message);
+            $this->beforeSend($formattedTo, $message);
 
-            $payload = $this->buildPayload($to, $message);
+            $payload = $this->buildPayload($formattedTo, $message);
 
             $response = $this->makeHttpRequest(
                 $this->getApiUrl(),
                 $payload
             );
 
-            $this->afterSend($response, $to, $message);
+            $this->afterSend($response, $formattedTo, $message);
 
             return $this->handleResponse($response);
-        } catch (Throwable $e) {
-            $this->handleException($e, $to, $message);
+        } catch (Throwable $exception) {
+            $this->handleException($exception, $to, $message);
 
             return null;
         }
+    }
+
+    /**
+     * @return Collection<int, SmsResponseData>
+     */
+    protected function scheduleSmsSend(string $to, string $message, Carbon|string $scheduleAt): Collection
+    {
+        $scheduledTime = $scheduleAt instanceof Carbon ? $scheduleAt : Carbon::parse($scheduleAt);
+
+        SendSmsJob::dispatch($to, $message)->delay($scheduledTime);
+
+        return collect([
+            new SmsResponseData(
+                messageId: '',
+                status: 'scheduled',
+                to: $this->formatPhoneNumber($to),
+                message: $message,
+                provider: 'custom',
+                response: ['scheduled_at' => $scheduledTime->toIso8601String()]
+            ),
+        ]);
+    }
+
+    public function sendScheduledSms(string $to, string $message, Carbon|CarbonImmutable|string $date): ?Collection
+    {
+        $scheduledTime = match (true) {
+            $date instanceof CarbonImmutable => $date->toMutable(),
+            $date instanceof Carbon => $date,
+            default => Carbon::parse($date),
+        };
+
+        return $this->sendSms($to, $message, $scheduledTime);
+    }
+
+    public function sendBulkSms(array $recipients, string $message): ?Collection
+    {
+        $responses = collect();
+
+        foreach ($recipients as $recipient) {
+            $result = $this->sendSms($recipient, $message);
+            if ($result) {
+                $responses = $responses->merge($result);
+            }
+        }
+
+        return $responses->isEmpty() ? null : $responses;
+    }
+
+    public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
+    {
+        $scheduledTime = $date instanceof CarbonImmutable ? $date : CarbonImmutable::parse($date);
+
+        SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
+
+        return collect(array_map(
+            fn (string $recipient) => new SmsResponseData(
+                messageId: '',
+                status: 'scheduled',
+                to: $this->formatPhoneNumber($recipient),
+                message: $message,
+                provider: 'custom',
+                response: ['scheduled_at' => $scheduledTime->toIso8601String()]
+            ),
+            $recipients
+        ));
     }
 
     protected function makeHttpRequest(string $url, array $payload): PromiseInterface|Response
@@ -60,21 +133,13 @@ abstract class CustomProvider extends BaseProvider
         return Http::post($url, $payload);
     }
 
-    // 👇 New extensibility points
+    protected function beforeSend(string $to, string $message): void {}
 
-    protected function beforeSend(string $to, string $message): void
-    {
-        // Subclasses may log or transform here
-    }
+    protected function afterSend(mixed $response, string $to, string $message): void {}
 
-    protected function afterSend(mixed $response, string $to, string $message): void
+    protected function handleException(Throwable $exception, string $to, string $message): void
     {
-        // Subclasses may log, audit, or store response
-    }
-
-    protected function handleException(Throwable $e, string $to, string $message): void
-    {
-        logger()->error($e->getMessage(), [
+        logger()->error($exception->getMessage(), [
             'to' => $to,
             'message' => $message,
             'provider' => static::class,

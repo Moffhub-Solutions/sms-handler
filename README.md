@@ -1,36 +1,57 @@
 ## SMS Handler
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/moffhub/sms-lib.svg?style=flat-square)](https://packagist.org/packages/moffhub/sms-lib)
-[![Total Downloads](https://img.shields.io/packagist/dt/moffhub/sms-lib.svg?style=flat-square)](https://packagist.org/packages/moffhub/sms-lib)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/moffhub/sms-handler.svg?style=flat-square)](https://packagist.org/packages/moffhub/sms-handler)
+[![Total Downloads](https://img.shields.io/packagist/dt/moffhub/sms-handler.svg?style=flat-square)](https://packagist.org/packages/moffhub/sms-handler)
     
-This library is used to send interface with the SMS API. It is used to send SMS messages to users.
+A simple, unified SMS integration library for Laravel. Send SMS messages through multiple providers with a consistent API.
 
-#### Features
+## Features
 
 - [x] Send SMS
-- [ ] Send Scheduled SMS
-- [ ] Send Bulk SMS
-- [ ] Send Bulk Scheduled SMS
-- [ ] Get Message Info
-- [x] Log SMS messages in the database
-- [ ] Get SMS messages from the database
+- [x] Send Scheduled SMS
+- [x] Send Bulk SMS
+- [x] Log SMS messages (database or file)
+- [x] Multiple provider support
+- [x] Custom provider extensibility
 
-#### Providers
+## Supported Providers
 
-- [x] Advanta SMS Provider
-- [x] Africa's Talking SMS Provider
-- [x] Twilio SMS Provider
-- [x] Nexmo SMS Provider
-- [x] Custom SMS Provider
-
+- **Advanta** - Kenya SMS gateway
+- **Africa's Talking** - Pan-African SMS gateway
+- **Twilio** - Global SMS provider
+- **Nexmo/Vonage** - Global SMS provider
+- **Onfon Media** - Kenya SMS gateway
+- **Custom** - Build your own provider
 
 ## Installation
 
-You can install the package via composer:
+```bash
+composer require moffhub/sms-handler
+```
+
+## Configuration
+
+Publish the config and migrations:
+
+```bash
+php artisan vendor:publish --provider="Moffhub\SmsHandler\SmsHandlerServiceProvider" --tag=config
+php artisan vendor:publish --tag=migrations
+php artisan migrate
+```
+
+### Environment Variables
+
+Add the following to your `.env` file based on your provider:
 
 ```bash
 # Provider selection
-SMS_PROVIDER=advanta  # or at, onfon, twilio, nexmo
+SMS_PROVIDER=at  # Options: advanta, at, onfon, twilio, nexmo
+
+# Africa's Talking
+AT_USERNAME=sandbox          # Use 'sandbox' for testing, your app username for production
+AT_API_KEY=your_api_key
+AT_FROM=YOUR_SENDER_ID       # Optional: Your registered sender ID/short code
+AT_API_URL=                  # Optional: Custom API URL (auto-detected based on username)
 
 # Advanta
 ADVANTA_API_KEY=
@@ -39,17 +60,13 @@ ADVANTA_BULK_API_URL=
 ADVANTA_PARTNER_ID=
 ADVANTA_SHORT_CODE=
 
-# Africa's Talking
-AT_API_KEY=
-AT_API_URL=
-
 # Onfon Media
 ONFON_API_KEY=
 ONFON_API_URL=
 ONFON_SENDER_ID=
 ONFON_CLIENT_ID=
 
-# Nexmo
+# Nexmo/Vonage
 NEXMO_KEY=
 NEXMO_SECRET=
 NEXMO_FROM=NEXMO
@@ -62,76 +79,96 @@ TWILIO_FROM=
 TWILIO_API_URL=https://api.twilio.com
 
 # Logging
-SMS_LOG_CHANNEL=log
-````
-
-```bash
-composer require moffhub/sms-handler
+SMS_LOG_CHANNEL=log  # Options: log, model
 ```
 
-You can publish the config file with:
+## Usage
 
-```bash
-php artisan vendor:publish --provider="Moffhub\SmsHandler\SmsHandlerServiceProvider" --tag=config
-php artisan vendor:publish --tag=migrations
-php artisan migrate
-```
-
-### Available Methods
-The library provides simple methods you can use
-
-```sendSms($to, $message)```
-This method sends a single SMS to a single recipient
-
-
-``sendBulkSms($to, $message)``
-This method sends a single SMS to multiple recipients
-
-``sendScheduledSms($to, $message, $time)``
-This method sends a single SMS to a single recipient at a scheduled time
-
-``sendBulkScheduledSms($to, $message, $time)``
-This method sends a single SMS to multiple recipients at a scheduled time
-
-
-``getMessageInfo($messageId)``
-This method gets the status of a message
-
-
-The package also logs the messages and their responses in the database. You can view the messages in the database by running the command below
-
-
-### Usage
-
-```php
-use Moffhub\SmsHandler\SmsHandler;
-
-$sms = new SmsHandler();
-
-$sms->sendSms('0700000000', 'Hello World');
-
-$sms->sendScheduledSms('0700000000', 'Hello World', '2024-12-12 12:00');
-```
-or 
+### Using the Facade
 
 ```php
 use Moffhub\SmsHandler\Facades\Sms;
 
-SendSms::sendSms('0700000000', 'Hello World');
+// Send a single SMS
+Sms::sendSms('+254712345678', 'Hello World');
 
-SendSms::sendScheduledSms('0700000000', 'Hello World', '2024-12-12 12:00');
+// Send bulk SMS
+Sms::sendBulkSms(['+254712345678', '+254712345679'], 'Hello everyone!');
+
+// Send scheduled SMS
+Sms::sendScheduledSms('+254712345678', 'Reminder!', '2024-12-25 09:00:00');
+
+// Check delivery status
+$status = Sms::getSmsDeliveryStatus('message_id_here');
 ```
-### Custom Providers
+
+### Using Dependency Injection
+
 ```php
+use Moffhub\SmsHandler\Services\SmsService;
+
+class NotificationController extends Controller
+{
+    public function __construct(protected SmsService $smsService) {}
+
+    public function notify(Request $request)
+    {
+        $this->smsService->sendSms(
+            $request->phone,
+            $request->message
+        );
+    }
+}
+```
+
+### Switching Providers at Runtime
+
+```php
+use Moffhub\SmsHandler\SmsManager;
+
+$manager = app(SmsManager::class);
+
+// Use Africa's Talking for this message
+$manager->driver('at')->sendSms('+254712345678', 'Via AT');
+
+// Use Twilio for this message
+$manager->driver('twilio')->sendSms('+1234567890', 'Via Twilio');
+```
+
+## Africa's Talking Integration
+
+The library fully supports the [Africa's Talking Bulk SMS API](https://developers.africastalking.com/docs/sms/sending/bulk):
+
+### Sandbox Testing
+```bash
+AT_USERNAME=sandbox
+AT_API_KEY=your_sandbox_api_key
+```
+
+### Production
+```bash
+AT_USERNAME=your_app_username
+AT_API_KEY=your_production_api_key
+AT_FROM=YOUR_SENDER_ID
+```
+
+### Features
+- Automatic sandbox/production URL detection
+- Phone number formatting (supports 0712..., 254712..., +254712...)
+- Bulk SMS with enqueue support
+- Sender ID/Short code support
+- Detailed response handling with message IDs and costs
+
+## Custom Providers
+
+Create your own provider by extending `CustomProvider`:
+
+```php
+use Moffhub\SmsHandler\Providers\CustomProvider;
+use Illuminate\Support\Collection;
+
 class MySmsProvider extends CustomProvider
 {
-    protected array $config;
-
-    public function __construct(array $config = [])
-    {
-        $this->config = $config;
-    }
-
     protected function getApiUrl(): string
     {
         return 'https://api.custom.com/send';
@@ -142,7 +179,7 @@ class MySmsProvider extends CustomProvider
         return [
             'to' => $to,
             'text' => $message,
-            'api_key' => $this->config['key'] ?? throw new \InvalidArgumentException('Missing API key'),
+            'api_key' => $this->config['key'],
         ];
     }
 
@@ -152,17 +189,26 @@ class MySmsProvider extends CustomProvider
             'status' => $response['status'] ?? 'unknown',
         ]);
     }
-
-    protected function afterSend($response, $to, $message): void
-    {
-        // Custom logic like saving to DB or event dispatching
-    }
 }
 ```
 
-Add your custom provider to the config file under `providers` array:
+Register your provider:
 
 ```php
+// In a service provider
+use Moffhub\SmsHandler\SmsManager;
+
+$this->app->make(SmsManager::class)->extend('custom', function ($app) {
+    return new MySmsProvider([
+        'key' => config('sms.providers.custom.key'),
+    ]);
+});
+```
+
+Add config:
+
+```php
+// config/sms.php
 'providers' => [
     'custom' => [
         'key' => env('MY_CUSTOM_API_KEY'),
@@ -170,23 +216,61 @@ Add your custom provider to the config file under `providers` array:
 ],
 ```
 
-extend the sms manager to use your custom provider:
-
-```php
-use Moffhub\SmsHandler\SmsManager;
-use App\Sms\MySmsProvider;
-
-$this->app->make(SmsManager::class)->extend('custom', function ($app) {
-    return new MySmsProvider([
-        'key' => config('sms.providers.custom.key'),
-    ]);
-});
-``` 
-
-update .env file to use your custom provider:
+Update `.env`:
 
 ```bash
 SMS_PROVIDER=custom
 MY_CUSTOM_API_KEY=super-secret
 ```
 
+## Laravel Notifications
+
+Use SMS in Laravel notifications:
+
+```php
+use Moffhub\SmsHandler\Notifications\SmsChannel;
+
+class OrderShipped extends Notification
+{
+    public function via($notifiable): array
+    {
+        return [SmsChannel::class];
+    }
+
+    public function toSms($notifiable): string
+    {
+        return 'Your order has been shipped!';
+    }
+}
+```
+
+Ensure your notifiable model has a `routeNotificationForSms` method:
+
+```php
+public function routeNotificationForSms(): string
+{
+    return $this->phone;
+}
+```
+
+## Logging
+
+SMS messages can be logged to file or database:
+
+```bash
+# Log to Laravel's log file
+SMS_LOG_CHANNEL=log
+
+# Log to database (requires migration)
+SMS_LOG_CHANNEL=model
+```
+
+## Testing
+
+```bash
+composer test
+```
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.

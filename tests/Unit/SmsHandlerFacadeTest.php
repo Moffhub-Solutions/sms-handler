@@ -4,70 +4,80 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Tests\Unit;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Moffhub\SmsHandler\Facades\Sms;
+use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
+use Moffhub\SmsHandler\Jobs\SendSmsJob;
 use Moffhub\SmsHandler\Tests\TestCase;
 
 class SmsHandlerFacadeTest extends TestCase
 {
-    public function test_sends_sms_facade_successfully(): void
+    protected function setUp(): void
     {
-        Sms::shouldReceive('sendSms')
-            ->once()
-            ->with('1234567890', 'Test message')
-            ->andReturn(true);
+        parent::setUp();
 
-        Sms::sendSms('1234567890', 'Test message');
+        Http::fake([
+            '*' => Http::response([
+                'responses' => [
+                    [
+                        'response-code' => 200,
+                        'response-description' => 'Success',
+                        'mobile' => '254712345678',
+                        'messageid' => 'msg123',
+                    ],
+                ],
+            ]),
+        ]);
     }
 
-    public function test_fails_to_send_sms_facade(): void
+    public function test_sends_sms_via_facade(): void
     {
-        Sms::shouldReceive('sendSms')
-            ->once()
-            ->with('1234567890', 'Test message')
-            ->andReturn(false);
+        Sms::sendSms('0712345678', 'Test message');
 
-        Sms::sendSms('1234567890', 'Test message');
+        Http::assertSentCount(1);
     }
 
-    public function test_sends_bulk_sms_facade_successfully(): void
+    public function test_sends_bulk_sms_via_facade(): void
     {
-        Sms::shouldReceive('sendBulkSms')
-            ->once()
-            ->with(['1234567890', '0987654321'], 'Test message')
-            ->andReturn(true);
+        Sms::sendBulkSms(['0712345678', '0712345679'], 'Bulk test message');
 
-        Sms::sendBulkSms(['1234567890', '0987654321'], 'Test message');
+        Http::assertSentCount(1);
     }
 
-    public function test_fails_to_send_bulk_sms_facade(): void
+    public function test_gets_delivery_status_via_facade(): void
     {
-        Sms::shouldReceive('sendBulkSms')
-            ->once()
-            ->with(['1234567890', '0987654321'], 'Test message')
-            ->andReturn(false);
+        $status = Sms::getSmsDeliveryStatus('msg123');
 
-        Sms::sendBulkSms(['1234567890', '0987654321'], 'Test message');
+        $this->assertIsString($status);
     }
 
-    public function test_gets_sms_delivery_status_facade_successfully(): void
+    public function test_scheduled_sms_throws_for_past_date(): void
     {
-        Sms::shouldReceive('getSmsDeliveryStatus')
-            ->once()
-            ->with('messageId')
-            ->andReturn('delivered');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Date must be in the future');
 
-        $status = Sms::getSmsDeliveryStatus('messageId');
-        $this->assertEquals('delivered', $status);
+        Sms::sendScheduledSms('0712345678', 'Test', '2020-01-01 12:00:00');
     }
 
-    public function test_fails_to_get_sms_delivery_status_facade(): void
+    public function test_scheduled_sms_dispatches_job_via_facade(): void
     {
-        Sms::shouldReceive('getSmsDeliveryStatus')
-            ->once()
-            ->with('messageId')
-            ->andReturn('');
+        Queue::fake();
 
-        $status = Sms::getSmsDeliveryStatus('messageId');
-        $this->assertEquals('', $status);
+        $futureDate = Carbon::now()->addHour();
+        Sms::sendScheduledSms('0712345678', 'Scheduled message', $futureDate);
+
+        Queue::assertPushed(SendSmsJob::class);
+    }
+
+    public function test_scheduled_bulk_sms_dispatches_job_via_facade(): void
+    {
+        Queue::fake();
+
+        $futureDate = Carbon::now()->addHour();
+        Sms::sendScheduledBulkSms(['0712345678', '0712345679'], 'Scheduled bulk', $futureDate);
+
+        Queue::assertPushed(SendBulkSmsJob::class);
     }
 }

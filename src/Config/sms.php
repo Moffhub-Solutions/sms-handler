@@ -13,7 +13,9 @@ return [
             'short_code' => env('ADVANTA_SHORT_CODE'),
         ],
         'at' => [
+            'username' => env('AT_USERNAME', 'sandbox'),
             'api_key' => env('AT_API_KEY'),
+            'from' => env('AT_FROM'),
             'api_url' => env('AT_API_URL'),
         ],
         'onfon' => [

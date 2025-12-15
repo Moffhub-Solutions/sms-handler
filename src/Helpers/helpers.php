@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Moffhub\SmsHandler\Helpers;
+
 /**
  * A helper function to format phone number
  */

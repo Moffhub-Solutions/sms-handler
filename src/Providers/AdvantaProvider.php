@@ -12,7 +12,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
+use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
+
+use function Moffhub\SmsHandler\Helpers\formatPhoneNumber;
 
 class AdvantaProvider extends BaseProvider
 {
@@ -23,9 +26,7 @@ class AdvantaProvider extends BaseProvider
         protected string $partnerId,
         protected string $shortCode,
         protected ?string $bulkApiUrl = null,
-    ) {
-        // /
-    }
+    ) {}
 
     public function getApiKey(): string
     {
@@ -57,35 +58,62 @@ class AdvantaProvider extends BaseProvider
         return 'delivered';
     }
 
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
     public function sendBulkSms(array $recipients, string $message): ?Collection
     {
-        collect($recipients)->map(function ($recipient, $message) {
-            return [
-                'mobile' => $recipient,
-                'apikey' => $this->apiKey,
-                'partnerID' => $this->partnerId,
-                'shortcode' => $this->shortCode,
-                'pass_type' => 'plain',
-                'clientsmsid' => '123456',
-                'message' => $message,
-            ];
-        })->chunk(20)->each(function ($chunk) {
-            $response = Http::post($this->bulkApiUrl, $chunk);
-            $responses = $response->json('responses');
+        if (! $this->bulkApiUrl) {
+            return $this->sendBulkSmsSequentially($recipients, $message);
+        }
 
-            return collect($responses)->map(function ($response) {
-                return [
-                    'responseCode' => $response['response-code'],
-                    'responseDescription' => $response['response-description'],
-                    'mobile' => $response['mobile'],
-                    'messageId' => $response['messageid'],
-                    //                    'clientSmsId' => $response['clientsmsid'],
-                    'networkId' => $response['networkid'],
-                ];
-            });
+        $allResponses = collect();
+
+        collect($recipients)->map(fn (string $recipient) => [
+            'mobile' => formatPhoneNumber($recipient),
+            'apikey' => $this->apiKey,
+            'partnerID' => $this->partnerId,
+            'shortcode' => $this->shortCode,
+            'pass_type' => 'plain',
+            'clientsmsid' => uniqid('sms_'),
+            'message' => $message,
+        ])->chunk(20)->each(function (Collection $chunk) use (&$allResponses, $message) {
+            $response = Http::post($this->bulkApiUrl, $chunk->values()->toArray());
+            $responses = $response->json('responses') ?? [];
+
+            $mapped = collect($responses)->map(fn (array $item) => new SmsResponseData(
+                messageId: $item['messageid'] ?? '',
+                status: (string) ($item['response-code'] ?? ''),
+                to: (string) ($item['mobile'] ?? ''),
+                message: $message,
+                provider: 'advanta',
+                response: [
+                    'description' => $item['response-description'] ?? '',
+                    'networkId' => $item['networkid'] ?? '',
+                ]
+            ));
+
+            $allResponses = $allResponses->merge($mapped);
         });
 
-        return null;
+        return $allResponses->isEmpty() ? null : $allResponses;
+    }
+
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
+    protected function sendBulkSmsSequentially(array $recipients, string $message): ?Collection
+    {
+        $responses = collect();
+
+        foreach ($recipients as $recipient) {
+            $result = $this->sendSms($recipient, $message);
+            if ($result) {
+                $responses = $responses->merge($result);
+            }
+        }
+
+        return $responses->isEmpty() ? null : $responses;
     }
 
     /**
@@ -93,35 +121,72 @@ class AdvantaProvider extends BaseProvider
      */
     public function sendScheduledSms(string $to, string $message, CarbonImmutable|string|Carbon $date): ?Collection
     {
-        return $this->sendSms($to, $message, $date);
+        $scheduledTime = match (true) {
+            $date instanceof CarbonImmutable => $date->toMutable(),
+            $date instanceof Carbon => $date,
+            default => Carbon::parse($date),
+        };
+
+        return $this->sendSms($to, $message, $scheduledTime);
     }
 
     /**
-     * Send SMS
-     *
+     * @return Collection<int, SmsResponseData>|null
+     */
+    public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
+    {
+        $scheduledTime = $date instanceof CarbonImmutable ? $date : CarbonImmutable::parse($date);
+
+        SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
+
+        return collect(array_map(
+            fn (string $recipient) => new SmsResponseData(
+                messageId: '',
+                status: 'scheduled',
+                to: formatPhoneNumber($recipient),
+                message: $message,
+                provider: 'advanta',
+                response: ['scheduled_at' => $scheduledTime->toIso8601String()]
+            ),
+            $recipients
+        ));
+    }
+
+    /**
      * @return Collection<int, SmsResponseData>|null
      */
     public function sendSms(string $to, string $message, Carbon|string|null $scheduleAt = null): ?Collection
     {
-        $phoneNumber = formatPhoneNumber($to);
-        if ($scheduleAt) {
-            SendSmsJob::dispatchAt($to, $message, $scheduleAt);
+        $formattedPhone = formatPhoneNumber($to);
 
-            return collect([['status' => 'scheduled', 'to' => $to, 'message' => $message]]);
+        if ($scheduleAt) {
+            $scheduledTime = $scheduleAt instanceof Carbon ? $scheduleAt : Carbon::parse($scheduleAt);
+
+            SendSmsJob::dispatch($to, $message)->delay($scheduledTime);
+
+            return collect([
+                new SmsResponseData(
+                    messageId: '',
+                    status: 'scheduled',
+                    to: $formattedPhone,
+                    message: $message,
+                    provider: 'advanta',
+                    response: ['scheduled_at' => $scheduledTime->toIso8601String()]
+                ),
+            ]);
         }
 
         try {
             return $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [
                 'apikey' => $this->apiKey,
                 'message' => $message,
-                'mobile' => $phoneNumber,
+                'mobile' => $formattedPhone,
                 'partnerID' => $this->partnerId,
                 'shortcode' => $this->shortCode,
             ], $message);
-
-        } catch (Exception $e) {
-            logger()->error($e->getMessage(), [
-                'to' => $phoneNumber,
+        } catch (Exception $exception) {
+            logger()->error($exception->getMessage(), [
+                'to' => $formattedPhone,
                 'message' => $message,
             ]);
 
