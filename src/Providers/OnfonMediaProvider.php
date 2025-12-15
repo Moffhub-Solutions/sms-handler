@@ -13,6 +13,7 @@ use Moffhub\SmsHandler\Actions\Onfon\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
 use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
+use function Moffhub\SmsHandler\Helpers\formatPhoneNumber;
 
 class OnfonMediaProvider extends BaseProvider
 {

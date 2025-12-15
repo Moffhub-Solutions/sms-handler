@@ -131,7 +131,7 @@ class SmsManagerTest extends TestCase
         ], $payload);
 
         $response = $provider->handleResponse(['status' => 'ok']);
-        $this->assertEquals('ok', $response?->get('status'));
+        $this->assertEquals('ok', $response?->first()?->status);
     }
 
     public function test_africas_talking_uses_sandbox_url_for_sandbox_username(): void
