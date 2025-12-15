@@ -83,8 +83,7 @@ class AfricasTalkingProvider extends BaseProvider
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->asForm()->post($this->getApiUrl(), $payload);
+        ])->asJson()->post($this->getApiUrl(), $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking SMS failed', [
@@ -157,8 +156,7 @@ class AfricasTalkingProvider extends BaseProvider
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->asForm()->post($this->getApiUrl(), $payload);
+        ])->asJson()->post($this->getApiUrl(), $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking Bulk SMS failed', [
