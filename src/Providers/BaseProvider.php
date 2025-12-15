@@ -15,22 +15,22 @@ abstract class BaseProvider implements SmsProviderInterface
 {
     public function sendSms(string $to, string $message, Carbon|string|null $scheduleAt = null): ?Collection
     {
-        throw new BadMethodCallException(static::class . ' must implement sendSms.');
+        throw new BadMethodCallException(static::class.' must implement sendSms.');
     }
 
     public function sendScheduledSms(string $to, string $message, Carbon|CarbonImmutable|string $date): ?Collection
     {
-        throw new BadMethodCallException(static::class . ' must implement sendScheduledSms.');
+        throw new BadMethodCallException(static::class.' must implement sendScheduledSms.');
     }
 
     public function sendBulkSms(array $recipients, string $message): ?Collection
     {
-        throw new BadMethodCallException(static::class . ' must implement sendBulkSms.');
+        throw new BadMethodCallException(static::class.' must implement sendBulkSms.');
     }
 
     public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
     {
-        throw new BadMethodCallException(static::class . ' must implement sendScheduledBulkSms.');
+        throw new BadMethodCallException(static::class.' must implement sendScheduledBulkSms.');
     }
 
     public function getSmsDeliveryStatus(string $messageId): string

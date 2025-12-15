@@ -189,7 +189,7 @@ class AfricasTalkingProviderTest extends TestCase
         $providerWithoutFrom->sendSms('+254712345678', 'Test');
 
         Http::assertSent(function ($request) {
-            return !isset($request['from']);
+            return ! isset($request['from']);
         });
     }
 

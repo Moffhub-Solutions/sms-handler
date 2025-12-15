@@ -14,6 +14,7 @@ use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
 use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
+
 use function Moffhub\SmsHandler\Helpers\formatPhoneNumber;
 
 class AdvantaProvider extends BaseProvider
@@ -62,13 +63,13 @@ class AdvantaProvider extends BaseProvider
      */
     public function sendBulkSms(array $recipients, string $message): ?Collection
     {
-        if (!$this->bulkApiUrl) {
+        if (! $this->bulkApiUrl) {
             return $this->sendBulkSmsSequentially($recipients, $message);
         }
 
         $allResponses = collect();
 
-        collect($recipients)->map(fn(string $recipient) => [
+        collect($recipients)->map(fn (string $recipient) => [
             'mobile' => formatPhoneNumber($recipient),
             'apikey' => $this->apiKey,
             'partnerID' => $this->partnerId,
@@ -80,7 +81,7 @@ class AdvantaProvider extends BaseProvider
             $response = Http::post($this->bulkApiUrl, $chunk->values()->toArray());
             $responses = $response->json('responses') ?? [];
 
-            $mapped = collect($responses)->map(fn(array $item) => new SmsResponseData(
+            $mapped = collect($responses)->map(fn (array $item) => new SmsResponseData(
                 messageId: $item['messageid'] ?? '',
                 status: (string) ($item['response-code'] ?? ''),
                 to: (string) ($item['mobile'] ?? ''),
@@ -139,7 +140,7 @@ class AdvantaProvider extends BaseProvider
         SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
 
         return collect(array_map(
-            fn(string $recipient) => new SmsResponseData(
+            fn (string $recipient) => new SmsResponseData(
                 messageId: '',
                 status: 'scheduled',
                 to: formatPhoneNumber($recipient),
@@ -171,7 +172,7 @@ class AdvantaProvider extends BaseProvider
                     message: $message,
                     provider: 'advanta',
                     response: ['scheduled_at' => $scheduledTime->toIso8601String()]
-                )
+                ),
             ]);
         }
 

@@ -33,7 +33,7 @@ class DummyCustomProvider extends CustomProvider
                 message: $response['message'] ?? '',
                 provider: 'dummy',
                 response: ['raw' => $response]
-            )
+            ),
         ]);
     }
 

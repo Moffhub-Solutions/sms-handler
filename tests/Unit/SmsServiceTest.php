@@ -17,6 +17,7 @@ use Throwable;
 class SmsServiceTest extends TestCase
 {
     protected SmsManager $smsManager;
+
     protected SmsService $smsService;
 
     protected function setUp(): void

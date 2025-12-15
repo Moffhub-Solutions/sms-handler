@@ -18,14 +18,14 @@ class SmsChannel
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
-        if (!method_exists($notification, 'toSms')) {
+        if (! method_exists($notification, 'toSms')) {
             throw new Exception('Notification is missing toSms method.');
         }
 
         $message = $notification->toSms($notifiable);
         $to = $notifiable->routeNotificationFor('sms', $notification);
 
-        if (!$to) {
+        if (! $to) {
             return;
         }
 

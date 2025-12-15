@@ -80,7 +80,7 @@ abstract class CustomProvider extends BaseProvider
                 message: $message,
                 provider: 'custom',
                 response: ['scheduled_at' => $scheduledTime->toIso8601String()]
-            )
+            ),
         ]);
     }
 
@@ -116,7 +116,7 @@ abstract class CustomProvider extends BaseProvider
         SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
 
         return collect(array_map(
-            fn(string $recipient) => new SmsResponseData(
+            fn (string $recipient) => new SmsResponseData(
                 messageId: '',
                 status: 'scheduled',
                 to: $this->formatPhoneNumber($recipient),

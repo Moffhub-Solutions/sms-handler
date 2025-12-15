@@ -9,8 +9,6 @@ use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Support\Collection;
 use Moffhub\SmsHandler\Data\SmsResponseData;
-use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
-use Moffhub\SmsHandler\Jobs\SendSmsJob;
 use Moffhub\SmsHandler\Models\SmsLog;
 use Moffhub\SmsHandler\SmsManager;
 use Throwable;
@@ -77,7 +75,7 @@ class SmsService
             default => Carbon::parse($date),
         };
 
-        if (!$scheduledDate->isFuture()) {
+        if (! $scheduledDate->isFuture()) {
             throw new Exception('Date must be in the future');
         }
 
@@ -102,7 +100,7 @@ class SmsService
             default => CarbonImmutable::parse($date),
         };
 
-        if (!$scheduledDate->isFuture()) {
+        if (! $scheduledDate->isFuture()) {
             throw new Exception('Date must be in the future');
         }
 

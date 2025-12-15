@@ -96,7 +96,7 @@ class OnfonMediaProvider extends BaseProvider
                 message: $message,
                 provider: 'onfon',
                 response: ['scheduled_at' => $scheduledTime->toIso8601String()]
-            )
+            ),
         ]);
     }
 
@@ -122,7 +122,7 @@ class OnfonMediaProvider extends BaseProvider
         $allResponses = collect();
 
         collect($recipients)->chunk(100)->each(function (Collection $chunk) use ($message, &$allResponses) {
-            $payload = $chunk->map(fn(string $recipient) => [
+            $payload = $chunk->map(fn (string $recipient) => [
                 'Number' => formatPhoneNumber($recipient, '254'),
                 'Text' => $message,
             ])->values()->toArray();
@@ -161,7 +161,7 @@ class OnfonMediaProvider extends BaseProvider
         SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
 
         return collect(array_map(
-            fn(string $recipient) => new SmsResponseData(
+            fn (string $recipient) => new SmsResponseData(
                 messageId: '',
                 status: 'scheduled',
                 to: formatPhoneNumber($recipient, '254'),

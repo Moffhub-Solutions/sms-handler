@@ -15,6 +15,7 @@ use Moffhub\SmsHandler\Jobs\SendSmsJob;
 class AfricasTalkingProvider extends BaseProvider
 {
     protected const SANDBOX_API_URL = 'https://api.sandbox.africastalking.com/version1/messaging';
+
     protected const PRODUCTION_API_URL = 'https://api.africastalking.com/version1/messaging';
 
     public function __construct(
@@ -85,11 +86,12 @@ class AfricasTalkingProvider extends BaseProvider
             'Content-Type' => 'application/x-www-form-urlencoded',
         ])->asForm()->post($this->getApiUrl(), $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             logger()->error('Africa\'s Talking SMS failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -113,7 +115,7 @@ class AfricasTalkingProvider extends BaseProvider
                 message: $message,
                 provider: 'africastalking',
                 response: ['scheduled_at' => $scheduledTime->toIso8601String()]
-            )
+            ),
         ]);
     }
 
@@ -137,7 +139,7 @@ class AfricasTalkingProvider extends BaseProvider
     public function sendBulkSms(array $recipients, string $message): ?Collection
     {
         $formattedRecipients = array_map(
-            fn(string $phone) => $this->formatPhoneNumber($phone),
+            fn (string $phone) => $this->formatPhoneNumber($phone),
             $recipients
         );
 
@@ -158,11 +160,12 @@ class AfricasTalkingProvider extends BaseProvider
             'Content-Type' => 'application/x-www-form-urlencoded',
         ])->asForm()->post($this->getApiUrl(), $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             logger()->error('Africa\'s Talking Bulk SMS failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -179,7 +182,7 @@ class AfricasTalkingProvider extends BaseProvider
         SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
 
         return collect(array_map(
-            fn(string $recipient) => new SmsResponseData(
+            fn (string $recipient) => new SmsResponseData(
                 messageId: '',
                 status: 'scheduled',
                 to: $this->formatPhoneNumber($recipient),
@@ -204,7 +207,7 @@ class AfricasTalkingProvider extends BaseProvider
         $data = $responseData['SMSMessageData'] ?? [];
         $recipients = $data['Recipients'] ?? [];
 
-        return collect($recipients)->map(fn(array $recipient) => new SmsResponseData(
+        return collect($recipients)->map(fn (array $recipient) => new SmsResponseData(
             messageId: $recipient['messageId'] ?? '',
             status: $recipient['status'] ?? 'unknown',
             to: $recipient['number'] ?? '',
@@ -226,13 +229,13 @@ class AfricasTalkingProvider extends BaseProvider
         }
 
         if (str_starts_with($cleaned, '0')) {
-            return '+254' . substr($cleaned, 1);
+            return '+254'.substr($cleaned, 1);
         }
 
         if (str_starts_with($cleaned, '254')) {
-            return '+' . $cleaned;
+            return '+'.$cleaned;
         }
 
-        return '+254' . $cleaned;
+        return '+254'.$cleaned;
     }
 }

@@ -22,7 +22,7 @@ class SendSmsAction
 
         $responses = $response->json('Data') ?? [];
 
-        return collect($responses)->map(fn(array $item) => new SmsResponseData(
+        return collect($responses)->map(fn (array $item) => new SmsResponseData(
             messageId: $item['MessageId'] ?? '',
             status: $item['MessageErrorCode'] ?? '',
             to: (string) ($item['MobileNumber'] ?? ''),

@@ -60,11 +60,12 @@ class TwilioProvider extends BaseProvider
                 'Body' => $message,
             ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             logger()->error('Twilio SMS failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -82,7 +83,7 @@ class TwilioProvider extends BaseProvider
                     'dateCreated' => $data['date_created'] ?? null,
                     'price' => $data['price'] ?? null,
                 ]
-            )
+            ),
         ]);
     }
 
@@ -103,7 +104,7 @@ class TwilioProvider extends BaseProvider
                 message: $message,
                 provider: 'twilio',
                 response: ['scheduled_at' => $scheduledTime->toIso8601String()]
-            )
+            ),
         ]);
     }
 
@@ -148,7 +149,7 @@ class TwilioProvider extends BaseProvider
         SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
 
         return collect(array_map(
-            fn(string $recipient) => new SmsResponseData(
+            fn (string $recipient) => new SmsResponseData(
                 messageId: '',
                 status: 'scheduled',
                 to: $recipient,
@@ -166,7 +167,7 @@ class TwilioProvider extends BaseProvider
 
         $response = Http::withBasicAuth($this->accountSid, $this->authToken)->get($endpoint);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             return 'unknown';
         }
 

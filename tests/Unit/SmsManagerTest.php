@@ -117,7 +117,7 @@ class SmsManagerTest extends TestCase
 
     public function test_custom_provider_registration(): void
     {
-        $this->smsManager->extend('custom_test', fn() => new DummyCustomProvider());
+        $this->smsManager->extend('custom_test', fn () => new DummyCustomProvider);
 
         $provider = $this->smsManager->driver('custom_test');
 

@@ -58,11 +58,12 @@ class NexmoProvider extends BaseProvider
             'text' => $message,
         ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             logger()->error('Nexmo SMS failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -73,7 +74,7 @@ class NexmoProvider extends BaseProvider
             return null;
         }
 
-        return collect($messages)->map(fn(array $msg) => new SmsResponseData(
+        return collect($messages)->map(fn (array $msg) => new SmsResponseData(
             messageId: $msg['message-id'] ?? '',
             status: $msg['status'] === '0' ? 'sent' : 'failed',
             to: $msg['to'] ?? $to,
@@ -105,7 +106,7 @@ class NexmoProvider extends BaseProvider
                 message: $message,
                 provider: 'nexmo',
                 response: ['scheduled_at' => $scheduledTime->toIso8601String()]
-            )
+            ),
         ]);
     }
 
@@ -150,7 +151,7 @@ class NexmoProvider extends BaseProvider
         SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
 
         return collect(array_map(
-            fn(string $recipient) => new SmsResponseData(
+            fn (string $recipient) => new SmsResponseData(
                 messageId: '',
                 status: 'scheduled',
                 to: $recipient,

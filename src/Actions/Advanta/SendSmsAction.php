@@ -18,7 +18,7 @@ class SendSmsAction
         $httpResponse = Http::post($apiUrl, $payload);
         $responses = $httpResponse->json('responses') ?? [];
 
-        return collect($responses)->map(fn(array $item) => new SmsResponseData(
+        return collect($responses)->map(fn (array $item) => new SmsResponseData(
             messageId: $item['messageid'] ?? '',
             status: (string) ($item['response-code'] ?? ''),
             to: (string) ($item['mobile'] ?? ''),
