@@ -15,21 +15,19 @@ class SendSmsAction
      */
     public function execute(string $apiUrl, array $payload, string $message): Collection
     {
-        $response = Http::post($apiUrl, $payload);
-        $responses = $response->json('responses');
+        $httpResponse = Http::post($apiUrl, $payload);
+        $responses = $httpResponse->json('responses') ?? [];
 
-        return collect($responses)->map(function ($response) use ($message) {
-            return new SmsResponseData(
-                messageId: $response['messageid'] ?? '',
-                status: (string) $response['response-code'] ?? '',
-                to: (string) $response['mobile'] ?? '',
-                message: $message,
-                provider: 'advanta',
-                response: [
-                    'description' => $response['response-description'] ?? '',
-                    'networkId' => $response['networkid'] ?? '',
-                ]
-            );
-        });
+        return collect($responses)->map(fn(array $item) => new SmsResponseData(
+            messageId: $item['messageid'] ?? '',
+            status: (string) ($item['response-code'] ?? ''),
+            to: (string) ($item['mobile'] ?? ''),
+            message: $message,
+            provider: 'advanta',
+            response: [
+                'description' => $item['response-description'] ?? '',
+                'networkId' => $item['networkid'] ?? '',
+            ]
+        ));
     }
 }

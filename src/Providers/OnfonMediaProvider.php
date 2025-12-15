@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moffhub\SmsHandler\Providers;
 
 use Carbon\Carbon;
@@ -9,6 +11,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Moffhub\SmsHandler\Actions\Onfon\SendSmsAction;
 use Moffhub\SmsHandler\Data\SmsResponseData;
+use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
+use Moffhub\SmsHandler\Jobs\SendSmsJob;
 
 class OnfonMediaProvider extends BaseProvider
 {
@@ -18,9 +22,7 @@ class OnfonMediaProvider extends BaseProvider
         protected string $apiUrl,
         protected string $senderId,
         protected string $clientId,
-    ) {
-        // /
-    }
+    ) {}
 
     public function getApiKey(): string
     {
@@ -45,13 +47,12 @@ class OnfonMediaProvider extends BaseProvider
     /**
      * @return Collection<int, SmsResponseData>|null
      */
-    public function sendScheduledSms(string $to, string $message, string|Carbon|CarbonImmutable $date): ?Collection
-    {
-        return $this->sendSms($to, $message, $date);
-    }
-
     public function sendSms(string $to, string $message, string|null|Carbon $scheduleAt = null): ?Collection
     {
+        if ($scheduleAt) {
+            return $this->scheduleSmsSend($to, $message, $scheduleAt);
+        }
+
         $phoneNumber = formatPhoneNumber($to, '254');
 
         try {
@@ -68,9 +69,8 @@ class OnfonMediaProvider extends BaseProvider
                 'IsUnicode' => true,
                 'IsFlash' => true,
             ], $message);
-
-        } catch (Exception $e) {
-            logger()->error($e->getMessage(), [
+        } catch (Exception $exception) {
+            logger()->error($exception->getMessage(), [
                 'to' => $phoneNumber,
                 'message' => $message,
             ]);
@@ -79,17 +79,56 @@ class OnfonMediaProvider extends BaseProvider
         }
     }
 
+    /**
+     * @return Collection<int, SmsResponseData>
+     */
+    protected function scheduleSmsSend(string $to, string $message, Carbon|string $scheduleAt): Collection
+    {
+        $scheduledTime = $scheduleAt instanceof Carbon ? $scheduleAt : Carbon::parse($scheduleAt);
+
+        SendSmsJob::dispatch($to, $message)->delay($scheduledTime);
+
+        return collect([
+            new SmsResponseData(
+                messageId: '',
+                status: 'scheduled',
+                to: formatPhoneNumber($to, '254'),
+                message: $message,
+                provider: 'onfon',
+                response: ['scheduled_at' => $scheduledTime->toIso8601String()]
+            )
+        ]);
+    }
+
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
+    public function sendScheduledSms(string $to, string $message, string|Carbon|CarbonImmutable $date): ?Collection
+    {
+        $scheduledTime = match (true) {
+            $date instanceof CarbonImmutable => $date->toMutable(),
+            $date instanceof Carbon => $date,
+            default => Carbon::parse($date),
+        };
+
+        return $this->sendSms($to, $message, $scheduledTime);
+    }
+
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
     public function sendBulkSms(array $recipients, string $message): ?Collection
     {
-        return collect($recipients)->chunk(100)->each(function ($chunk) use ($message) {
-            $payload = $chunk->map(function ($recipient) use ($message) {
-                return [
-                    'Number' => formatPhoneNumber($recipient, '254'),
-                    'Text' => $message,
-                ];
-            });
+        $allResponses = collect();
+
+        collect($recipients)->chunk(100)->each(function (Collection $chunk) use ($message, &$allResponses) {
+            $payload = $chunk->map(fn(string $recipient) => [
+                'Number' => formatPhoneNumber($recipient, '254'),
+                'Text' => $message,
+            ])->values()->toArray();
+
             try {
-                return $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [
+                $result = $this->app->make(SendSmsAction::class)->execute($this->apiUrl, [
                     'ApiKey' => $this->apiKey,
                     'ClientId' => $this->clientId,
                     'SenderId' => $this->senderId,
@@ -98,14 +137,44 @@ class OnfonMediaProvider extends BaseProvider
                     'IsFlash' => true,
                 ], $message);
 
-            } catch (Exception $e) {
-                logger()->error($e->getMessage(), [
-                    'to' => $chunk,
+                if ($result) {
+                    $allResponses = $allResponses->merge($result);
+                }
+            } catch (Exception $exception) {
+                logger()->error($exception->getMessage(), [
+                    'recipients' => $chunk->toArray(),
                     'message' => $message,
                 ]);
-
-                return null;
             }
         });
+
+        return $allResponses->isEmpty() ? null : $allResponses;
+    }
+
+    /**
+     * @return Collection<int, SmsResponseData>|null
+     */
+    public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
+    {
+        $scheduledTime = $date instanceof CarbonImmutable ? $date : CarbonImmutable::parse($date);
+
+        SendBulkSmsJob::dispatch($recipients, $message)->delay($scheduledTime);
+
+        return collect(array_map(
+            fn(string $recipient) => new SmsResponseData(
+                messageId: '',
+                status: 'scheduled',
+                to: formatPhoneNumber($recipient, '254'),
+                message: $message,
+                provider: 'onfon',
+                response: ['scheduled_at' => $scheduledTime->toIso8601String()]
+            ),
+            $recipients
+        ));
+    }
+
+    public function getSmsDeliveryStatus(string $messageId): string
+    {
+        return 'pending';
     }
 }

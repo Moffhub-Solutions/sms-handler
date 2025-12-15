@@ -15,21 +15,22 @@ class SendSmsAction
      */
     public function execute(string $apiUrl, array $payload, string $message): Collection
     {
-        $response = Http::post($apiUrl, $payload)->withAddedHeader('AccessKey', $payload['ClientId']);
-        $responses = $response->json('Data');
+        $response = Http::withHeaders([
+            'AccessKey' => $payload['ClientId'],
+            'Content-Type' => 'application/json',
+        ])->post($apiUrl, $payload);
 
-        return collect($responses)->map(function ($response) use ($message) {
-            return new SmsResponseData(
-                messageId: $response['MessageId'] ?? '',
-                status: '',
-                to: (string) $response['MobileNumber'] ?? '',
-                message: $message,
-                provider: 'onfon',
-                response: [
-                    'description' => '',
-                    'networkId' => '',
-                ]
-            );
-        });
+        $responses = $response->json('Data') ?? [];
+
+        return collect($responses)->map(fn(array $item) => new SmsResponseData(
+            messageId: $item['MessageId'] ?? '',
+            status: $item['MessageErrorCode'] ?? '',
+            to: (string) ($item['MobileNumber'] ?? ''),
+            message: $message,
+            provider: 'onfon',
+            response: [
+                'description' => $item['MessageErrorDescription'] ?? '',
+            ]
+        ));
     }
 }

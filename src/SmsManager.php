@@ -37,12 +37,14 @@ class SmsManager extends Manager
     public function createAfricasTalkingDriver(): AfricasTalkingProvider
     {
         return new AfricasTalkingProvider(
-            $this->app['config']['sms.providers.at.api_key'],
-            $this->app['config']['sms.providers.at.api_url'],
+            username: $this->app['config']['sms.providers.at.username'],
+            apiKey: $this->app['config']['sms.providers.at.api_key'],
+            from: $this->app['config']['sms.providers.at.from'],
+            apiUrl: $this->app['config']['sms.providers.at.api_url'],
         );
     }
 
-    public function createOnfonMediaDriver()
+    public function createOnfonMediaDriver(): OnfonMediaProvider
     {
         return new OnfonMediaProvider(
             app: $this->app,
