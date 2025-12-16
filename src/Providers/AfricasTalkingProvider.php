@@ -72,12 +72,12 @@ class AfricasTalkingProvider extends BaseProvider
 
         $payload = [
             'username' => $this->username,
-            'to' => $formattedPhone,
+            'phoneNumbers' => [$formattedPhone],
             'message' => $message,
         ];
 
         if ($this->from) {
-            $payload['from'] = $this->from;
+            $payload['senderId'] = $this->from;
         }
 
         $response = Http::withHeaders([
@@ -144,13 +144,13 @@ class AfricasTalkingProvider extends BaseProvider
 
         $payload = [
             'username' => $this->username,
-            'to' => implode(',', $formattedRecipients),
+            'phoneNumbers' => [implode(',', $formattedRecipients)],
             'message' => $message,
             'enqueue' => 1,
         ];
 
         if ($this->from) {
-            $payload['from'] = $this->from;
+            $payload['senderId'] = $this->from;
         }
 
         $response = Http::withHeaders([
