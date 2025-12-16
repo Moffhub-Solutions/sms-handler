@@ -50,7 +50,7 @@ class SmsService
                     get_class($this->smsManager->driver()),
                     $response->to,
                     $message,
-                    $response->status !== 'failed',
+                    $this->isSuccessfulStatus($response->status),
                     $response
                 );
             });
@@ -123,7 +123,7 @@ class SmsService
                     get_class($this->smsManager->driver()),
                     $to,
                     $message,
-                    $response->status !== 'failed',
+                    $this->isSuccessfulStatus($response->status),
                     $response
                 );
             });
@@ -132,6 +132,13 @@ class SmsService
         }
 
         return $logs;
+    }
+
+    protected function isSuccessfulStatus(string $status): bool
+    {
+        $successStatuses = ['Success', 'Sent', 'Queued', 'Processed', 'scheduled'];
+
+        return in_array($status, $successStatuses, true);
     }
 
     /**

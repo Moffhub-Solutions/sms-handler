@@ -81,7 +81,7 @@ class AfricasTalkingProvider extends BaseProvider
 
         $payload = [
             'username' => $this->username,
-            'phoneNumbers' => [$formattedPhone],
+            'to' => $formattedPhone,
             'message' => $message,
         ];
 
@@ -92,7 +92,7 @@ class AfricasTalkingProvider extends BaseProvider
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-        ])->asJson()->post($this->getApiUrl(), $payload);
+        ])->asForm()->post($this->getApiUrl(), $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking SMS failed', [
