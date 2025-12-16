@@ -56,7 +56,7 @@ class AfricasTalkingProviderTest extends TestCase
             return str_contains($request->url(), 'sandbox')
                 && $request->hasHeader('apiKey', 'test_api_key')
                 && $request['username'] === 'sandbox'
-                && str_contains($request['to'], '+254');
+                && in_array('+254712345678', $request['phoneNumbers']);
         });
     }
 
@@ -94,7 +94,7 @@ class AfricasTalkingProviderTest extends TestCase
 
         Http::assertSent(function ($request) {
             return $request['enqueue'] === 1
-                && str_contains($request['to'], ',');
+                && count($request['phoneNumbers']) === 2;
         });
     }
 
@@ -124,7 +124,7 @@ class AfricasTalkingProviderTest extends TestCase
         $this->provider->sendSms('0712345678', 'Test');
 
         Http::assertSent(function ($request) {
-            return $request['to'] === '+254712345678';
+            return $request['phoneNumbers'] === ['+254712345678'];
         });
     }
 
@@ -143,7 +143,7 @@ class AfricasTalkingProviderTest extends TestCase
         $this->provider->sendSms('254712345678', 'Test');
 
         Http::assertSent(function ($request) {
-            return $request['to'] === '+254712345678';
+            return $request['phoneNumbers'] === ['+254712345678'];
         });
     }
 
@@ -169,7 +169,7 @@ class AfricasTalkingProviderTest extends TestCase
         $this->provider->sendSms('+254712345678', 'Test');
 
         Http::assertSent(function ($request) {
-            return $request['from'] === 'TESTAPP';
+            return isset($request['from']) && $request['from'] === 'TESTAPP';
         });
     }
 
