@@ -18,6 +18,8 @@ class AfricasTalkingProvider extends BaseProvider
 
     protected const PRODUCTION_API_URL = 'https://api.africastalking.com/version1/messaging';
 
+    protected const PRODUCTION_BULK_API_URL = 'https://api.africastalking.com/version1/messaging/bulk';
+
     public function __construct(
         protected string $username,
         protected string $apiKey,
@@ -51,6 +53,13 @@ class AfricasTalkingProvider extends BaseProvider
             : self::PRODUCTION_API_URL;
     }
 
+    protected function getBulkApiUrl(): string
+    {
+        return $this->username === 'sandbox'
+            ? self::SANDBOX_API_URL
+            : self::PRODUCTION_BULK_API_URL;
+    }
+
     /**
      * @return Collection<int, SmsResponseData>|null
      */
@@ -77,7 +86,7 @@ class AfricasTalkingProvider extends BaseProvider
         ];
 
         if ($this->from) {
-            $payload['senderId'] = $this->from;
+            $payload['from'] = $this->from;
         }
 
         $response = Http::withHeaders([
@@ -144,7 +153,7 @@ class AfricasTalkingProvider extends BaseProvider
 
         $payload = [
             'username' => $this->username,
-            'phoneNumbers' => [implode(',', $formattedRecipients)],
+            'phoneNumbers' => implode(',', $formattedRecipients),
             'message' => $message,
             'enqueue' => 1,
         ];
@@ -156,7 +165,7 @@ class AfricasTalkingProvider extends BaseProvider
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-        ])->asJson()->post($this->getApiUrl(), $payload);
+        ])->asJson()->post($this->getBulkApiUrl(), $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking Bulk SMS failed', [

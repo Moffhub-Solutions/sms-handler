@@ -94,7 +94,8 @@ class AfricasTalkingProviderTest extends TestCase
 
         Http::assertSent(function ($request) {
             return $request['enqueue'] === 1
-                && count($request['phoneNumbers']) === 2;
+                && str_contains($request['phoneNumbers'], ',')
+                && $request['senderId'] === 'TESTAPP';
         });
     }
 
@@ -240,5 +241,26 @@ class AfricasTalkingProviderTest extends TestCase
         $this->assertEquals('scheduled', $result->first()->status);
 
         Queue::assertPushed(SendSmsJob::class);
+    }
+
+    public function test_bulk_sms_uses_bulk_endpoint(): void
+    {
+        Http::fake([
+            '*' => Http::response([
+                'SMSMessageData' => ['Recipients' => []],
+            ]),
+        ]);
+
+        $productionProvider = new AfricasTalkingProvider(
+            username: 'production_user',
+            apiKey: 'test_api_key',
+            from: 'TESTAPP',
+        );
+
+        $productionProvider->sendBulkSms(['+254712345678'], 'Test');
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/messaging/bulk');
+        });
     }
 }
