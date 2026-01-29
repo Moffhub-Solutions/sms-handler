@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $message
  * @property bool $success
  * @property string|null $delivery_status
+ * @property CarbonImmutable|null $scheduled_at
  * @property array|null $response
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -30,11 +31,13 @@ class SmsLog extends Model
         'message',
         'success',
         'delivery_status',
+        'scheduled_at',
         'response',
     ];
 
     protected $casts = [
         'response' => 'array',
         'success' => 'boolean',
+        'scheduled_at' => 'immutable_datetime',
     ];
 }

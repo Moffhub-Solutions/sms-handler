@@ -110,10 +110,40 @@ class SmsService
         $provider = $this->smsManager->driver();
 
         if (is_array($to)) {
-            return $provider->sendScheduledBulkSms($to, $message, CarbonImmutable::parse($scheduledDate));
+            $responses = $provider->sendScheduledBulkSms($to, $message, CarbonImmutable::parse($scheduledDate));
+
+            if ($responses) {
+                $responses->each(function (SmsResponseData $response) use ($message, $scheduledDate) {
+                    $this->logSms(
+                        get_class($this->smsManager->driver()),
+                        $response->to,
+                        $message,
+                        true,
+                        $response,
+                        CarbonImmutable::parse($scheduledDate)
+                    );
+                });
+            }
+
+            return $responses;
         }
 
-        return $provider->sendScheduledSms($to, $message, $scheduledDate);
+        $responses = $provider->sendScheduledSms($to, $message, $scheduledDate);
+
+        if ($responses) {
+            $responses->each(function (SmsResponseData $response) use ($to, $message, $scheduledDate) {
+                $this->logSms(
+                    get_class($this->smsManager->driver()),
+                    $to,
+                    $message,
+                    true,
+                    $response,
+                    CarbonImmutable::parse($scheduledDate)
+                );
+            });
+        }
+
+        return $responses;
     }
 
     /**
@@ -134,7 +164,22 @@ class SmsService
 
         $provider = $this->smsManager->driver();
 
-        return $provider->sendScheduledBulkSms($recipients, $message, $scheduledDate);
+        $responses = $provider->sendScheduledBulkSms($recipients, $message, $scheduledDate);
+
+        if ($responses) {
+            $responses->each(function (SmsResponseData $response) use ($message, $scheduledDate) {
+                $this->logSms(
+                    get_class($this->smsManager->driver()),
+                    $response->to,
+                    $message,
+                    true,
+                    $response,
+                    $scheduledDate
+                );
+            });
+        }
+
+        return $responses;
     }
 
     /**
@@ -188,7 +233,7 @@ class SmsService
     /**
      * @throws Throwable
      */
-    protected function logSms(string $provider, string $to, string $message, bool $success, mixed $response = null): void
+    protected function logSms(string $provider, string $to, string $message, bool $success, mixed $response = null, ?CarbonImmutable $scheduledAt = null): void
     {
         if ($this->logChannel === 'model') {
             $smsLog = new SmsLog;
@@ -196,6 +241,7 @@ class SmsService
             $smsLog->to = $to;
             $smsLog->message = $message;
             $smsLog->success = $success;
+            $smsLog->scheduled_at = $scheduledAt;
 
             if ($response instanceof SmsResponseData) {
                 $smsLog->message_id = $response->messageId ?: null;
@@ -212,6 +258,7 @@ class SmsService
                 'message' => $message,
                 'success' => $success,
                 'message_id' => $response instanceof SmsResponseData ? $response->messageId : null,
+                'scheduled_at' => $scheduledAt?->toIso8601String(),
             ]);
         }
     }
