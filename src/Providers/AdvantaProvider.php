@@ -55,7 +55,15 @@ class AdvantaProvider extends BaseProvider
 
     public function getSmsDeliveryStatus(string $messageId): string
     {
-        return 'delivered';
+        // Advanta uses delivery report callbacks rather than polling
+        return 'pending';
+    }
+
+    public function getSmsBalance(): int
+    {
+        // Advanta doesn't have a standard balance API endpoint
+        // Balance is typically checked via their web portal
+        return 0;
     }
 
     /**
@@ -79,6 +87,16 @@ class AdvantaProvider extends BaseProvider
             'message' => $message,
         ])->chunk(20)->each(function (Collection $chunk) use (&$allResponses, $message) {
             $response = Http::post($this->bulkApiUrl, $chunk->values()->toArray());
+
+            if (! $response->successful()) {
+                logger()->error('Advanta Bulk SMS failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return;
+            }
+
             $responses = $response->json('responses') ?? [];
 
             $mapped = collect($responses)->map(fn (array $item) => new SmsResponseData(

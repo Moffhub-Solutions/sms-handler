@@ -173,4 +173,24 @@ class TwilioProvider extends BaseProvider
 
         return $response->json('status') ?? 'unknown';
     }
+
+    public function getSmsBalance(): int
+    {
+        $endpoint = "{$this->apiUrl}/2010-04-01/Accounts/{$this->accountSid}/Balance.json";
+
+        $response = Http::withBasicAuth($this->accountSid, $this->authToken)->get($endpoint);
+
+        if (! $response->successful()) {
+            logger()->error('Twilio balance check failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return 0;
+        }
+
+        $balance = $response->json('balance') ?? '0';
+
+        return (int) (float) $balance;
+    }
 }
