@@ -39,6 +39,32 @@ class SmsService
     }
 
     /**
+     * Get the list of available SMS providers.
+     *
+     * @return array<string>
+     */
+    public function getAvailableProviders(): array
+    {
+        return $this->smsManager->getAvailableProviders();
+    }
+
+    /**
+     * Check if a provider is configured.
+     */
+    public function isProviderConfigured(string $provider): bool
+    {
+        return $this->smsManager->isProviderConfigured($provider);
+    }
+
+    /**
+     * Get the current default provider name.
+     */
+    public function getDefaultProvider(): string
+    {
+        return $this->smsManager->getDefaultDriver();
+    }
+
+    /**
      * @throws Throwable
      */
     public function sendBulkSms(array $recipients, string $message): ?Collection
