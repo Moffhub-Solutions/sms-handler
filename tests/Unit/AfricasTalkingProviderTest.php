@@ -58,7 +58,7 @@ class AfricasTalkingProviderTest extends TestCase
             return str_contains($request->url(), 'sandbox')
                 && $request->hasHeader('apiKey', 'test_api_key')
                 && $data['username'] === 'sandbox'
-                && in_array('+254712345678', $data['phoneNumbers']);
+                && $data['to'] === '+254712345678';
         });
     }
 
@@ -98,8 +98,8 @@ class AfricasTalkingProviderTest extends TestCase
             $data = $request->data();
 
             return $data['enqueue'] === 1
-                && str_contains($data['phoneNumbers'], ',')
-                && $data['senderId'] === 'TESTAPP';
+                && str_contains($data['to'], ',')
+                && $data['from'] === 'TESTAPP';
         });
     }
 
@@ -131,7 +131,7 @@ class AfricasTalkingProviderTest extends TestCase
         Http::assertSent(function ($request) {
             $data = $request->data();
 
-            return $data['phoneNumbers'] === ['+254712345678'];
+            return $data['to'] === '+254712345678';
         });
     }
 
@@ -152,7 +152,7 @@ class AfricasTalkingProviderTest extends TestCase
         Http::assertSent(function ($request) {
             $data = $request->data();
 
-            return $data['phoneNumbers'] === ['+254712345678'];
+            return $data['to'] === '+254712345678';
         });
     }
 
@@ -255,7 +255,7 @@ class AfricasTalkingProviderTest extends TestCase
         Queue::assertPushed(SendSmsJob::class);
     }
 
-    public function test_bulk_sms_uses_bulk_endpoint(): void
+    public function test_bulk_sms_uses_standard_endpoint(): void
     {
         Http::fake([
             '*' => Http::response([
@@ -272,7 +272,45 @@ class AfricasTalkingProviderTest extends TestCase
         $productionProvider->sendBulkSms(['+254712345678'], 'Test');
 
         Http::assertSent(function ($request) {
-            return str_contains($request->url(), '/messaging/bulk');
+            return str_contains($request->url(), '/messaging');
         });
+    }
+
+    public function test_get_sms_balance_returns_balance(): void
+    {
+        Http::fake([
+            '*' => Http::response([
+                'UserData' => [
+                    'balance' => 'KES 150.50',
+                ],
+            ]),
+        ]);
+
+        $balance = $this->provider->getSmsBalance();
+
+        $this->assertEquals(150, $balance);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/user')
+                && $request->hasHeader('apiKey', 'test_api_key');
+        });
+    }
+
+    public function test_get_sms_balance_returns_zero_on_failure(): void
+    {
+        Http::fake([
+            '*' => Http::response(['error' => 'Unauthorized'], 401),
+        ]);
+
+        $balance = $this->provider->getSmsBalance();
+
+        $this->assertEquals(0, $balance);
+    }
+
+    public function test_get_sms_delivery_status_returns_pending(): void
+    {
+        $status = $this->provider->getSmsDeliveryStatus('ATXid_123456');
+
+        $this->assertEquals('pending', $status);
     }
 }
