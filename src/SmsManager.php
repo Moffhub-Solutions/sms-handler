@@ -79,4 +79,44 @@ class SmsManager extends Manager
     {
         return $this->app['config']['sms.default'];
     }
+
+    /**
+     * Get the list of available SMS providers.
+     *
+     * @return array<string>
+     */
+    public function getAvailableProviders(): array
+    {
+        return [
+            'advanta',
+            'africastalking',
+            'onfon',
+            'nexmo',
+            'twilio',
+        ];
+    }
+
+    /**
+     * Check if a provider is configured.
+     */
+    public function isProviderConfigured(string $provider): bool
+    {
+        $configKey = match ($provider) {
+            'africastalking' => 'at',
+            'onfon' => 'onfon',
+            default => $provider,
+        };
+
+        $config = $this->app['config']["sms.providers.{$configKey}"] ?? [];
+
+        // Check if at least the basic required config is set
+        return match ($provider) {
+            'advanta' => ! empty($config['api_key']) && ! empty($config['api_url']),
+            'africastalking' => ! empty($config['api_key']),
+            'onfon' => ! empty($config['api_key']) && ! empty($config['api_url']),
+            'nexmo' => ! empty($config['key']) && ! empty($config['secret']),
+            'twilio' => ! empty($config['account_sid']) && ! empty($config['auth_token']),
+            default => false,
+        };
+    }
 }

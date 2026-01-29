@@ -134,4 +134,11 @@ class SmsServiceTest extends TestCase
             '2020-01-01 12:00:00'
         );
     }
+
+    public function test_gets_sms_balance(): void
+    {
+        $balance = $this->smsService->getSmsBalance();
+
+        $this->assertIsInt($balance);
+    }
 }

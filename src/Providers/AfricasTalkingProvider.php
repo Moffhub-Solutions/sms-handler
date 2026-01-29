@@ -153,19 +153,19 @@ class AfricasTalkingProvider extends BaseProvider
 
         $payload = [
             'username' => $this->username,
-            'phoneNumbers' => implode(',', $formattedRecipients),
+            'to' => implode(',', $formattedRecipients),
             'message' => $message,
             'enqueue' => 1,
         ];
 
         if ($this->from) {
-            $payload['senderId'] = $this->from;
+            $payload['from'] = $this->from;
         }
 
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-        ])->asJson()->post($this->getBulkApiUrl(), $payload);
+        ])->asForm()->post($this->getApiUrl(), $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking Bulk SMS failed', [
@@ -203,7 +203,42 @@ class AfricasTalkingProvider extends BaseProvider
 
     public function getSmsDeliveryStatus(string $messageId): string
     {
+        // Africa's Talking doesn't have a direct API to fetch delivery status by messageId.
+        // They use delivery report callbacks instead. Return the messageId status from
+        // your callback handler/database if you've set up delivery reports.
+        // See: https://africastalking.com/docs/sms/callback
         return 'pending';
+    }
+
+    public function getSmsBalance(): int
+    {
+        $apiUrl = $this->username === 'sandbox'
+            ? 'https://api.sandbox.africastalking.com/version1/user'
+            : 'https://api.africastalking.com/version1/user';
+
+        $response = Http::withHeaders([
+            'apiKey' => $this->apiKey,
+            'Accept' => 'application/json',
+        ])->get($apiUrl, [
+            'username' => $this->username,
+        ]);
+
+        if (! $response->successful()) {
+            logger()->error('Africa\'s Talking balance check failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return 0;
+        }
+
+        $data = $response->json();
+        $balance = $data['UserData']['balance'] ?? '0';
+
+        // Balance comes as string like "KES 100.00", extract numeric part
+        preg_match('/[\d.]+/', $balance, $matches);
+
+        return (int) ($matches[0] ?? 0);
     }
 
     /**

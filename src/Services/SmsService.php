@@ -27,13 +27,41 @@ class SmsService
      */
     public function getSmsDeliveryStatus(string $messageId): string
     {
-        if ($this->smsManager->driver()->getSmsDeliveryStatus($messageId)) {
-            return 'delivered';
-        }
+        return $this->smsManager->driver()->getSmsDeliveryStatus($messageId);
+    }
 
-        $this->logSms(get_class($this->smsManager->driver()), $messageId, 'Delivery status check failed', false);
+    /**
+     * @throws Throwable
+     */
+    public function getSmsBalance(): int
+    {
+        return $this->smsManager->driver()->getSmsBalance();
+    }
 
-        return 'not delivered';
+    /**
+     * Get the list of available SMS providers.
+     *
+     * @return array<string>
+     */
+    public function getAvailableProviders(): array
+    {
+        return $this->smsManager->getAvailableProviders();
+    }
+
+    /**
+     * Check if a provider is configured.
+     */
+    public function isProviderConfigured(string $provider): bool
+    {
+        return $this->smsManager->isProviderConfigured($provider);
+    }
+
+    /**
+     * Get the current default provider name.
+     */
+    public function getDefaultProvider(): string
+    {
+        return $this->smsManager->getDefaultDriver();
     }
 
     /**
@@ -136,7 +164,23 @@ class SmsService
 
     protected function isSuccessfulStatus(string $status): bool
     {
-        $successStatuses = ['Success', 'Sent', 'Queued', 'Processed', 'scheduled'];
+        $successStatuses = [
+            // AT statuses
+            'Success',
+            'Sent',
+            'Queued',
+            'Processed',
+            'scheduled',
+            // Advanta response codes
+            '200',
+            '1701',
+            // Twilio statuses
+            'queued',
+            'sent',
+            'delivered',
+            // Nexmo statuses
+            '0',
+        ];
 
         return in_array($status, $successStatuses, true);
     }
@@ -152,7 +196,14 @@ class SmsService
             $smsLog->to = $to;
             $smsLog->message = $message;
             $smsLog->success = $success;
-            $smsLog->response = $response instanceof SmsResponseData ? $response->response : $response;
+
+            if ($response instanceof SmsResponseData) {
+                $smsLog->message_id = $response->messageId ?: null;
+                $smsLog->response = $response->response;
+            } else {
+                $smsLog->response = $response;
+            }
+
             $smsLog->saveOrFail();
         } else {
             logger()->info('SMS sent', [
@@ -160,6 +211,7 @@ class SmsService
                 'to' => $to,
                 'message' => $message,
                 'success' => $success,
+                'message_id' => $response instanceof SmsResponseData ? $response->messageId : null,
             ]);
         }
     }

@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static Collection|null sendScheduledSms(string|array $to, string $message, Carbon|CarbonImmutable|string $date)
  * @method static Collection|null sendScheduledBulkSms(array $recipients, string $message, Carbon|CarbonImmutable|string $date)
  * @method static string getSmsDeliveryStatus(string $messageId)
+ * @method static int getSmsBalance()
+ * @method static array getAvailableProviders()
+ * @method static bool isProviderConfigured(string $provider)
+ * @method static string getDefaultProvider()
  *
  * @see \Moffhub\SmsHandler\Services\SmsService
  */

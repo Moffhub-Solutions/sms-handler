@@ -165,6 +165,29 @@ class NexmoProvider extends BaseProvider
 
     public function getSmsDeliveryStatus(string $messageId): string
     {
+        // Vonage/Nexmo uses delivery receipt callbacks rather than polling
+        // See: https://developer.vonage.com/messaging/sms/guides/delivery-receipts
         return 'pending';
+    }
+
+    public function getSmsBalance(): int
+    {
+        $response = Http::get('https://rest.nexmo.com/account/get-balance', [
+            'api_key' => $this->key,
+            'api_secret' => $this->secret,
+        ]);
+
+        if (! $response->successful()) {
+            logger()->error('Nexmo balance check failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return 0;
+        }
+
+        $balance = $response->json('value') ?? 0;
+
+        return (int) (float) $balance;
     }
 }
