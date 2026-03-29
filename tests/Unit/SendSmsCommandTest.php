@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Tests\Unit;
 
+use Moffhub\SmsHandler\Data\SmsResponseData;
 use Moffhub\SmsHandler\Services\SmsService;
 use Moffhub\SmsHandler\Tests\TestCase;
 
@@ -53,7 +54,7 @@ class SendSmsCommandTest extends TestCase
 
     public function test_send_succeeds_with_valid_response(): void
     {
-        $response = new \Moffhub\SmsHandler\Data\SmsResponseData(
+        $response = new SmsResponseData(
             messageId: 'msg_123',
             status: 'sent',
             to: '254712345678',

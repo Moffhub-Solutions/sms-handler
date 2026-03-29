@@ -6,10 +6,7 @@ parameters:
     ignoreErrors:
       - identifier: missingType.iterableValue
       - identifier: missingType.generics
-      - identifier: trait.unused
       - identifier: method.alreadyNarrowedType
-      - identifier: method.notFound
       - identifier: return.type
       - identifier: staticMethod.notFound
       - identifier: argument.templateType
-      - identifier: staticProperty.notFound

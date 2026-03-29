@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
+use Moffhub\SmsHandler\Services\SmsService;
 
 /**
  * @method static Collection|null sendSms(string $phoneNumber, string $message)
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Moffhub\SmsHandler\Services\SmsRateLimiter rateLimiter()
  * @method static \Moffhub\SmsHandler\Services\TemplateService templateService()
  *
- * @see \Moffhub\SmsHandler\Services\SmsService
+ * @see SmsService
  */
 class Sms extends Facade
 {

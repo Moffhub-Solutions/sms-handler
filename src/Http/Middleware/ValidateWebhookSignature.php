@@ -43,7 +43,7 @@ class ValidateWebhookSignature
      */
     protected function resolveProvider(Request $request): ?string
     {
-        $routeName = $request->route()?->getName();
+        $routeName = $request->route()->getName();
 
         if (! $routeName) {
             return null;

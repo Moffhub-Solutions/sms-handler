@@ -6,6 +6,7 @@ namespace Moffhub\SmsHandler\Tests\Unit;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
 use Moffhub\SmsHandler\Exceptions\ProviderException;
 use Moffhub\SmsHandler\Providers\AdvantaProvider;
 use Moffhub\SmsHandler\Providers\NexmoProvider;
@@ -113,7 +114,7 @@ class ErrorHandlingTest extends TestCase
             '*' => Http::response('Internal Server Error', 500),
         ]);
 
-        $action = new \Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
+        $action = new SendSmsAction;
 
         $this->expectException(ProviderException::class);
         $this->expectExceptionMessage('failed to send');
@@ -182,7 +183,7 @@ class ErrorHandlingTest extends TestCase
             '*' => Http::response('Rate limited', 429),
         ]);
 
-        $action = new \Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
+        $action = new SendSmsAction;
 
         $this->expectException(ProviderException::class);
 
@@ -234,7 +235,7 @@ class ErrorHandlingTest extends TestCase
             '*' => Http::response('not json content', 200, ['Content-Type' => 'text/plain']),
         ]);
 
-        $action = new \Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
+        $action = new SendSmsAction;
 
         $this->expectException(ProviderException::class);
         $this->expectExceptionMessage('Unexpected response format');
@@ -297,7 +298,7 @@ class ErrorHandlingTest extends TestCase
             '*' => Http::response('', 200),
         ]);
 
-        $action = new \Moffhub\SmsHandler\Actions\Advanta\SendSmsAction;
+        $action = new SendSmsAction;
 
         $this->expectException(ProviderException::class);
 
