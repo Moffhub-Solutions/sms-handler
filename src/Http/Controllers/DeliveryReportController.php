@@ -7,6 +7,7 @@ namespace Moffhub\SmsHandler\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Moffhub\SmsHandler\Events\DeliveryReportReceived;
 use Moffhub\SmsHandler\Models\SmsLog;
 
@@ -107,6 +108,22 @@ class DeliveryReportController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    /**
+     * Write a structured log entry to the configured SMS log channel.
+     */
+    protected function smsLog(string $messageKey, array $context = [], string $level = 'info'): void
+    {
+        $logChannel = config('sms.log.channel');
+        $logger = $logChannel ? Log::channel($logChannel) : Log::getFacadeRoot();
+
+        match ($level) {
+            'error' => $logger->error($messageKey, $context),
+            'debug' => $logger->debug($messageKey, $context),
+            'warning' => $logger->warning($messageKey, $context),
+            default => $logger->info($messageKey, $context),
+        };
+    }
+
     protected function updateDeliveryStatus(
         string $provider,
         ?string $messageId,
@@ -148,10 +165,11 @@ class DeliveryReportController extends Controller
         // Dispatch event for custom handling
         event(new DeliveryReportReceived($provider, $messageId, $status, $phoneNumber, $payload));
 
-        logger()->info("SMS delivery report received for {$provider}", [
-            'messageId' => $messageId,
+        $this->smsLog('sms.delivery_report', [
+            'provider' => $provider,
+            'message_id' => $messageId,
             'status' => $status,
-            'phoneNumber' => $phoneNumber,
+            'phone_number' => $phoneNumber,
         ]);
     }
 }

@@ -41,6 +41,7 @@ class SmsManager extends Manager
             apiKey: $this->app['config']['sms.providers.at.api_key'],
             from: $this->app['config']['sms.providers.at.from'],
             apiUrl: $this->app['config']['sms.providers.at.api_url'],
+            baseUrl: $this->app['config']['sms.providers.at.base_url'] ?? null,
         );
     }
 
@@ -62,6 +63,7 @@ class SmsManager extends Manager
             secret: $this->app['config']['sms.providers.nexmo.secret'],
             from: $this->app['config']['sms.providers.nexmo.from'],
             apiUrl: $this->app['config']['sms.providers.nexmo.api_url'],
+            baseUrl: $this->app['config']['sms.providers.nexmo.base_url'] ?? 'https://rest.nexmo.com',
         );
     }
 
@@ -72,6 +74,7 @@ class SmsManager extends Manager
             authToken: $this->app['config']['sms.providers.twilio.auth_token'],
             from: $this->app['config']['sms.providers.twilio.from'],
             apiUrl: $this->app['config']['sms.providers.twilio.api_url'],
+            baseUrl: $this->app['config']['sms.providers.twilio.base_url'] ?? 'https://api.twilio.com',
         );
     }
 

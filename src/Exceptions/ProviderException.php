@@ -20,4 +20,11 @@ class ProviderException extends SmsException
     {
         return new self("Invalid response from SMS provider '{$provider}'");
     }
+
+    public static function unexpectedResponse(string $provider, string $body): self
+    {
+        $truncated = mb_strlen($body) > 500 ? mb_substr($body, 0, 500).'...' : $body;
+
+        return new self("Unexpected response format from SMS provider '{$provider}': {$truncated}");
+    }
 }

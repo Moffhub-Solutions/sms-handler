@@ -6,31 +6,62 @@ namespace Moffhub\SmsHandler\Actions\Onfon;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Moffhub\SmsHandler\Data\SmsResponseData;
+use Moffhub\SmsHandler\Exceptions\ProviderException;
 
 class SendSmsAction
 {
     /**
      * @return Collection<int, SmsResponseData>
+     *
+     * @throws ProviderException
      */
     public function execute(string $apiUrl, array $payload, string $message): Collection
     {
         $response = Http::withHeaders([
-            'AccessKey' => $payload['ClientId'],
+            'AccessKey' => $payload['ClientId'] ?? '',
             'Content-Type' => 'application/json',
         ])->post($apiUrl, $payload);
 
-        $responses = $response->json('Data') ?? [];
+        $body = $response->body();
+        Log::debug('Onfon SMS raw response', ['body' => $body, 'status' => $response->status()]);
 
-        return collect($responses)->map(fn (array $item) => new SmsResponseData(
-            messageId: $item['MessageId'] ?? '',
-            status: $item['MessageErrorCode'] ?? '',
-            to: (string) ($item['MobileNumber'] ?? ''),
-            message: $message,
-            provider: 'onfon',
-            response: [
-                'description' => $item['MessageErrorDescription'] ?? '',
-            ]
-        ));
+        if (! $response->successful()) {
+            throw ProviderException::sendFailed('onfon', "HTTP {$response->status()}: {$body}");
+        }
+
+        $json = $response->json();
+
+        if (! is_array($json)) {
+            throw ProviderException::unexpectedResponse('onfon', $body);
+        }
+
+        if (! array_key_exists('Data', $json)) {
+            throw ProviderException::unexpectedResponse('onfon', $body);
+        }
+
+        $responses = $json['Data'];
+
+        if (! is_array($responses)) {
+            throw ProviderException::unexpectedResponse('onfon', $body);
+        }
+
+        return collect($responses)->map(function (mixed $item) use ($message, $body): SmsResponseData {
+            if (! is_array($item)) {
+                throw ProviderException::unexpectedResponse('onfon', $body);
+            }
+
+            return new SmsResponseData(
+                messageId: (string) ($item['MessageId'] ?? ''),
+                status: (string) ($item['MessageErrorCode'] ?? ''),
+                to: (string) ($item['MobileNumber'] ?? ''),
+                message: $message,
+                provider: 'onfon',
+                response: [
+                    'description' => (string) ($item['MessageErrorDescription'] ?? ''),
+                ]
+            );
+        });
     }
 }

@@ -19,6 +19,11 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getAvailableProviders()
  * @method static bool isProviderConfigured(string $provider)
  * @method static string getDefaultProvider()
+ * @method static \Moffhub\SmsHandler\Services\SmsTemplateBuilder template(string $templateName, array $variables = [])
+ * @method static array estimateCost(string $message, int $recipientCount = 1, ?string $provider = null)
+ * @method static \Moffhub\SmsHandler\Services\SmsAnalytics analytics()
+ * @method static \Moffhub\SmsHandler\Services\SmsRateLimiter rateLimiter()
+ * @method static \Moffhub\SmsHandler\Services\TemplateService templateService()
  *
  * @see \Moffhub\SmsHandler\Services\SmsService
  */

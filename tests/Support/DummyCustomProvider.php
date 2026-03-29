@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Moffhub\SmsHandler\Tests\Support;
 
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Moffhub\SmsHandler\Data\SmsResponseData;
 use Moffhub\SmsHandler\Providers\CustomProvider;
@@ -25,14 +26,16 @@ class DummyCustomProvider extends CustomProvider
 
     public function handleResponse(mixed $response): ?Collection
     {
+        $data = $response instanceof Response ? ($response->json() ?? []) : (is_array($response) ? $response : []);
+
         return collect([
             new SmsResponseData(
                 messageId: 'dummy_msg_id',
-                status: $response['status'] ?? 'ok',
-                to: $response['to'] ?? '',
-                message: $response['message'] ?? '',
+                status: $data['status'] ?? 'ok',
+                to: $data['to'] ?? '',
+                message: $data['message'] ?? '',
                 provider: 'dummy',
-                response: ['raw' => $response]
+                response: ['raw' => $data]
             ),
         ]);
     }

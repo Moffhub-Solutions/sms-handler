@@ -8,6 +8,7 @@ use BadMethodCallException;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Moffhub\SmsHandler\Contracts\SmsProviderInterface;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
 
@@ -23,9 +24,22 @@ abstract class BaseProvider implements SmsProviderInterface
         throw new BadMethodCallException(static::class.' must implement sendScheduledSms.');
     }
 
+    /**
+     * Default bulk SMS implementation that loops through recipients.
+     * Providers with native bulk endpoints should override this method.
+     */
     public function sendBulkSms(array $recipients, string $message): ?Collection
     {
-        throw new BadMethodCallException(static::class.' must implement sendBulkSms.');
+        $responses = collect();
+
+        foreach ($recipients as $recipient) {
+            $result = $this->sendSms($recipient, $message);
+            if ($result) {
+                $responses = $responses->merge($result);
+            }
+        }
+
+        return $responses->isEmpty() ? null : $responses;
     }
 
     public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
@@ -67,5 +81,40 @@ abstract class BaseProvider implements SmsProviderInterface
                 SendSmsJob::dispatch($to, $message)->delay($nextDate);
             }
         }
+    }
+
+    /**
+     * Log an outgoing provider HTTP request at debug level.
+     * Scrubs sensitive data from the payload before logging.
+     */
+    protected function logProviderRequest(string $method, string $url, array $payload = []): void
+    {
+        $scrubKeys = ['api_key', 'apiKey', 'apikey', 'api_secret', 'auth_token', 'secret', 'token', 'password', 'key'];
+        $scrubbedPayload = $this->scrubSensitiveData($payload, $scrubKeys);
+
+        $logChannel = config('sms.log.channel');
+        $logger = $logChannel ? Log::channel($logChannel) : Log::getFacadeRoot();
+
+        $logger->debug('sms.provider.request', [
+            'method' => $method,
+            'url' => $url,
+            'payload' => $scrubbedPayload,
+        ]);
+    }
+
+    /**
+     * Recursively scrub sensitive keys from an array.
+     */
+    protected function scrubSensitiveData(array $data, array $scrubKeys): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_string($key) && in_array(strtolower($key), array_map('strtolower', $scrubKeys), true)) {
+                $data[$key] = '***REDACTED***';
+            } elseif (is_array($value)) {
+                $data[$key] = $this->scrubSensitiveData($value, $scrubKeys);
+            }
+        }
+
+        return $data;
     }
 }

@@ -130,8 +130,9 @@ class AdvantaProviderTest extends TestCase
 
         $result = $this->provider->sendSms('0712345678', 'Test');
 
-        $this->assertNotNull($result);
-        $this->assertTrue($result->isEmpty());
+        // The action now throws ProviderException on HTTP failure,
+        // which is caught by the provider and returns null
+        $this->assertNull($result);
     }
 
     public function test_handles_bulk_api_failure_gracefully(): void

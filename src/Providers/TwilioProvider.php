@@ -19,6 +19,7 @@ class TwilioProvider extends BaseProvider
         protected string $authToken,
         protected string $from,
         protected string $apiUrl = 'https://api.twilio.com',
+        protected string $baseUrl = 'https://api.twilio.com',
     ) {}
 
     public function getAccountSid(): string
@@ -41,6 +42,11 @@ class TwilioProvider extends BaseProvider
         return $this->apiUrl;
     }
 
+    public function getBaseUrl(): string
+    {
+        return rtrim($this->baseUrl, '/');
+    }
+
     /**
      * @return Collection<int, SmsResponseData>|null
      */
@@ -50,15 +56,19 @@ class TwilioProvider extends BaseProvider
             return $this->scheduleSmsSend($to, $message, $scheduleAt);
         }
 
-        $endpoint = "{$this->apiUrl}/2010-04-01/Accounts/{$this->accountSid}/Messages.json";
+        $endpoint = "{$this->getBaseUrl()}/2010-04-01/Accounts/{$this->accountSid}/Messages.json";
+
+        $payload = [
+            'To' => $to,
+            'From' => $this->from,
+            'Body' => $message,
+        ];
+
+        $this->logProviderRequest('POST', $endpoint, $payload);
 
         $response = Http::withBasicAuth($this->accountSid, $this->authToken)
             ->asForm()
-            ->post($endpoint, [
-                'To' => $to,
-                'From' => $this->from,
-                'Body' => $message,
-            ]);
+            ->post($endpoint, $payload);
 
         if (! $response->successful()) {
             logger()->error('Twilio SMS failed', [
@@ -122,22 +132,7 @@ class TwilioProvider extends BaseProvider
         return $this->sendSms($to, $message, $scheduledTime);
     }
 
-    /**
-     * @return Collection<int, SmsResponseData>|null
-     */
-    public function sendBulkSms(array $recipients, string $message): ?Collection
-    {
-        $responses = collect();
-
-        foreach ($recipients as $recipient) {
-            $result = $this->sendSms($recipient, $message);
-            if ($result) {
-                $responses = $responses->merge($result);
-            }
-        }
-
-        return $responses->isEmpty() ? null : $responses;
-    }
+    // sendBulkSms is inherited from BaseProvider (loops sendSms per recipient)
 
     /**
      * @return Collection<int, SmsResponseData>|null
@@ -163,7 +158,9 @@ class TwilioProvider extends BaseProvider
 
     public function getSmsDeliveryStatus(string $messageId): string
     {
-        $endpoint = "{$this->apiUrl}/2010-04-01/Accounts/{$this->accountSid}/Messages/{$messageId}.json";
+        $endpoint = "{$this->getBaseUrl()}/2010-04-01/Accounts/{$this->accountSid}/Messages/{$messageId}.json";
+
+        $this->logProviderRequest('GET', $endpoint, []);
 
         $response = Http::withBasicAuth($this->accountSid, $this->authToken)->get($endpoint);
 
@@ -176,7 +173,9 @@ class TwilioProvider extends BaseProvider
 
     public function getSmsBalance(): int
     {
-        $endpoint = "{$this->apiUrl}/2010-04-01/Accounts/{$this->accountSid}/Balance.json";
+        $endpoint = "{$this->getBaseUrl()}/2010-04-01/Accounts/{$this->accountSid}/Balance.json";
+
+        $this->logProviderRequest('GET', $endpoint, []);
 
         $response = Http::withBasicAuth($this->accountSid, $this->authToken)->get($endpoint);
 
