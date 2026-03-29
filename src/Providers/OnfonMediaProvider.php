@@ -139,9 +139,7 @@ class OnfonMediaProvider extends BaseProvider
                     'IsFlash' => true,
                 ], $message);
 
-                if ($result) {
-                    $allResponses = $allResponses->merge($result);
-                }
+                $allResponses = $allResponses->merge($result);
             } catch (Exception $exception) {
                 logger()->error($exception->getMessage(), [
                     'recipients' => $chunk->toArray(),

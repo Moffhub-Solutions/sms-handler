@@ -307,8 +307,16 @@ class AfricasTalkingProviderTest extends TestCase
         $this->assertEquals(0, $balance);
     }
 
-    public function test_get_sms_delivery_status_returns_pending(): void
+    public function test_get_sms_delivery_status_returns_pending_when_not_found(): void
     {
+        Http::fake([
+            '*' => Http::response([
+                'SMSMessageData' => [
+                    'Messages' => [],
+                ],
+            ]),
+        ]);
+
         $status = $this->provider->getSmsDeliveryStatus('ATXid_123456');
 
         $this->assertEquals('pending', $status);

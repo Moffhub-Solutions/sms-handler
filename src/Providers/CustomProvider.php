@@ -15,6 +15,8 @@ use Moffhub\SmsHandler\Jobs\SendBulkSmsJob;
 use Moffhub\SmsHandler\Jobs\SendSmsJob;
 use Throwable;
 
+use function Moffhub\SmsHandler\Helpers\formatPhoneNumber;
+
 abstract class CustomProvider extends BaseProvider
 {
     protected array $config;
@@ -95,19 +97,7 @@ abstract class CustomProvider extends BaseProvider
         return $this->sendSms($to, $message, $scheduledTime);
     }
 
-    public function sendBulkSms(array $recipients, string $message): ?Collection
-    {
-        $responses = collect();
-
-        foreach ($recipients as $recipient) {
-            $result = $this->sendSms($recipient, $message);
-            if ($result) {
-                $responses = $responses->merge($result);
-            }
-        }
-
-        return $responses->isEmpty() ? null : $responses;
-    }
+    // sendBulkSms is inherited from BaseProvider (loops sendSms per recipient)
 
     public function sendScheduledBulkSms(array $recipients, string $message, CarbonImmutable|string $date): ?Collection
     {

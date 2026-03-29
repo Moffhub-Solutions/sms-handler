@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
+use Moffhub\SmsHandler\Services\SmsService;
 
 /**
  * @method static Collection|null sendSms(string $phoneNumber, string $message)
@@ -19,8 +20,13 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getAvailableProviders()
  * @method static bool isProviderConfigured(string $provider)
  * @method static string getDefaultProvider()
+ * @method static \Moffhub\SmsHandler\Services\SmsTemplateBuilder template(string $templateName, array $variables = [])
+ * @method static array estimateCost(string $message, int $recipientCount = 1, ?string $provider = null)
+ * @method static \Moffhub\SmsHandler\Services\SmsAnalytics analytics()
+ * @method static \Moffhub\SmsHandler\Services\SmsRateLimiter rateLimiter()
+ * @method static \Moffhub\SmsHandler\Services\TemplateService templateService()
  *
- * @see \Moffhub\SmsHandler\Services\SmsService
+ * @see SmsService
  */
 class Sms extends Facade
 {

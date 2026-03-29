@@ -19,6 +19,7 @@ class NexmoProvider extends BaseProvider
         protected string $secret,
         protected string $from = 'NEXMO',
         protected string $apiUrl = 'https://rest.nexmo.com/sms/json',
+        protected string $baseUrl = 'https://rest.nexmo.com',
     ) {}
 
     public function getKey(): string
@@ -41,6 +42,11 @@ class NexmoProvider extends BaseProvider
         return $this->apiUrl;
     }
 
+    public function getBaseUrl(): string
+    {
+        return rtrim($this->baseUrl, '/');
+    }
+
     /**
      * @return Collection<int, SmsResponseData>|null
      */
@@ -50,13 +56,17 @@ class NexmoProvider extends BaseProvider
             return $this->scheduleSmsSend($to, $message, $scheduleAt);
         }
 
-        $response = Http::post($this->apiUrl, [
+        $payload = [
             'api_key' => $this->key,
             'api_secret' => $this->secret,
             'to' => $to,
             'from' => $this->from,
             'text' => $message,
-        ]);
+        ];
+
+        $this->logProviderRequest('POST', $this->apiUrl, $payload);
+
+        $response = Http::post($this->apiUrl, $payload);
 
         if (! $response->successful()) {
             logger()->error('Nexmo SMS failed', [
@@ -124,22 +134,7 @@ class NexmoProvider extends BaseProvider
         return $this->sendSms($to, $message, $scheduledTime);
     }
 
-    /**
-     * @return Collection<int, SmsResponseData>|null
-     */
-    public function sendBulkSms(array $recipients, string $message): ?Collection
-    {
-        $responses = collect();
-
-        foreach ($recipients as $recipient) {
-            $result = $this->sendSms($recipient, $message);
-            if ($result) {
-                $responses = $responses->merge($result);
-            }
-        }
-
-        return $responses->isEmpty() ? null : $responses;
-    }
+    // sendBulkSms is inherited from BaseProvider (loops sendSms per recipient)
 
     /**
      * @return Collection<int, SmsResponseData>|null
@@ -163,16 +158,55 @@ class NexmoProvider extends BaseProvider
         ));
     }
 
+    /**
+     * Poll Nexmo/Vonage for delivery status using the search messages API.
+     *
+     * @see https://developer.vonage.com/api/sms#search-message
+     */
     public function getSmsDeliveryStatus(string $messageId): string
     {
-        // Vonage/Nexmo uses delivery receipt callbacks rather than polling
-        // See: https://developer.vonage.com/messaging/sms/guides/delivery-receipts
-        return 'pending';
+        $url = $this->getBaseUrl().'/search/message';
+
+        $this->logProviderRequest('GET', $url, ['id' => $messageId]);
+
+        $response = Http::get($url, [
+            'api_key' => $this->key,
+            'api_secret' => $this->secret,
+            'id' => $messageId,
+        ]);
+
+        if (! $response->successful()) {
+            return 'unknown';
+        }
+
+        $data = $response->json();
+
+        // Nexmo returns status in the response
+        $status = $data['status'] ?? null;
+
+        if ($status === null) {
+            return 'unknown';
+        }
+
+        // Map Nexmo status codes to human-readable statuses
+        return match ($status) {
+            'DELIVERED', 'delivered' => 'delivered',
+            'EXPIRED', 'expired' => 'expired',
+            'FAILED', 'failed' => 'failed',
+            'REJECTED', 'rejected' => 'rejected',
+            'ACCEPTED', 'accepted' => 'sent',
+            'BUFFERED', 'buffered' => 'pending',
+            default => $status,
+        };
     }
 
     public function getSmsBalance(): int
     {
-        $response = Http::get('https://rest.nexmo.com/account/get-balance', [
+        $url = $this->getBaseUrl().'/account/get-balance';
+
+        $this->logProviderRequest('GET', $url, []);
+
+        $response = Http::get($url, [
             'api_key' => $this->key,
             'api_secret' => $this->secret,
         ]);

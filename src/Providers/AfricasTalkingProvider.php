@@ -14,17 +14,16 @@ use Moffhub\SmsHandler\Jobs\SendSmsJob;
 
 class AfricasTalkingProvider extends BaseProvider
 {
-    protected const SANDBOX_API_URL = 'https://api.sandbox.africastalking.com/version1/messaging';
+    protected const SANDBOX_BASE_URL = 'https://api.sandbox.africastalking.com';
 
-    protected const PRODUCTION_API_URL = 'https://api.africastalking.com/version1/messaging';
-
-    protected const PRODUCTION_BULK_API_URL = 'https://api.africastalking.com/version1/messaging/bulk';
+    protected const PRODUCTION_BASE_URL = 'https://api.africastalking.com';
 
     public function __construct(
         protected string $username,
         protected string $apiKey,
         protected ?string $from = null,
         protected ?string $apiUrl = null,
+        protected ?string $baseUrl = null,
     ) {}
 
     public function getUsername(): string
@@ -42,22 +41,33 @@ class AfricasTalkingProvider extends BaseProvider
         return $this->from;
     }
 
+    public function getBaseUrl(): string
+    {
+        if ($this->baseUrl) {
+            return rtrim($this->baseUrl, '/');
+        }
+
+        return $this->username === 'sandbox'
+            ? self::SANDBOX_BASE_URL
+            : self::PRODUCTION_BASE_URL;
+    }
+
     public function getApiUrl(): string
     {
         if ($this->apiUrl) {
             return $this->apiUrl;
         }
 
-        return $this->username === 'sandbox'
-            ? self::SANDBOX_API_URL
-            : self::PRODUCTION_API_URL;
+        return $this->getBaseUrl().'/version1/messaging';
     }
 
     protected function getBulkApiUrl(): string
     {
-        return $this->username === 'sandbox'
-            ? self::SANDBOX_API_URL
-            : self::PRODUCTION_BULK_API_URL;
+        if ($this->username === 'sandbox') {
+            return $this->getBaseUrl().'/version1/messaging';
+        }
+
+        return $this->getBaseUrl().'/version1/messaging/bulk';
     }
 
     /**
@@ -89,10 +99,14 @@ class AfricasTalkingProvider extends BaseProvider
             $payload['from'] = $this->from;
         }
 
+        $url = $this->getApiUrl();
+
+        $this->logProviderRequest('POST', $url, $payload);
+
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-        ])->asForm()->post($this->getApiUrl(), $payload);
+        ])->asForm()->post($url, $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking SMS failed', [
@@ -142,6 +156,9 @@ class AfricasTalkingProvider extends BaseProvider
     }
 
     /**
+     * Africa's Talking supports native bulk SMS via their API (comma-separated recipients).
+     * Override the BaseProvider loop implementation.
+     *
      * @return Collection<int, SmsResponseData>|null
      */
     public function sendBulkSms(array $recipients, string $message): ?Collection
@@ -162,10 +179,14 @@ class AfricasTalkingProvider extends BaseProvider
             $payload['from'] = $this->from;
         }
 
+        $url = $this->getApiUrl();
+
+        $this->logProviderRequest('POST', $url, $payload);
+
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
             'Accept' => 'application/json',
-        ])->asForm()->post($this->getApiUrl(), $payload);
+        ])->asForm()->post($url, $payload);
 
         if (! $response->successful()) {
             logger()->error('Africa\'s Talking Bulk SMS failed', [
@@ -201,20 +222,51 @@ class AfricasTalkingProvider extends BaseProvider
         ));
     }
 
+    /**
+     * Poll Africa's Talking for delivery status using the fetch messages API.
+     *
+     * Note: Africa's Talking primarily uses delivery report callbacks.
+     * This method uses their messaging fetch endpoint as a fallback to check status.
+     *
+     * @see https://africastalking.com/docs/sms/fetching
+     */
     public function getSmsDeliveryStatus(string $messageId): string
     {
-        // Africa's Talking doesn't have a direct API to fetch delivery status by messageId.
-        // They use delivery report callbacks instead. Return the messageId status from
-        // your callback handler/database if you've set up delivery reports.
-        // See: https://africastalking.com/docs/sms/callback
+        $url = $this->getBaseUrl().'/version1/messaging';
+
+        $this->logProviderRequest('GET', $url, ['username' => $this->username]);
+
+        $response = Http::withHeaders([
+            'apiKey' => $this->apiKey,
+            'Accept' => 'application/json',
+        ])->get($url, [
+            'username' => $this->username,
+            'lastReceivedId' => 0,
+        ]);
+
+        if (! $response->successful()) {
+            return 'unknown';
+        }
+
+        // Search through fetched messages for our message ID
+        $data = $response->json();
+        $messages = $data['SMSMessageData']['Messages'] ?? [];
+
+        foreach ($messages as $msg) {
+            if (($msg['id'] ?? '') === $messageId || ($msg['messageId'] ?? '') === $messageId) {
+                return $msg['status'] ?? 'unknown';
+            }
+        }
+
+        // If not found in fetched messages, the status is not available via polling
         return 'pending';
     }
 
     public function getSmsBalance(): int
     {
-        $apiUrl = $this->username === 'sandbox'
-            ? 'https://api.sandbox.africastalking.com/version1/user'
-            : 'https://api.africastalking.com/version1/user';
+        $apiUrl = $this->getBaseUrl().'/version1/user';
+
+        $this->logProviderRequest('GET', $apiUrl, ['username' => $this->username]);
 
         $response = Http::withHeaders([
             'apiKey' => $this->apiKey,
